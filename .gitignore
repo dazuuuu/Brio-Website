@@ -1,0 +1,39 @@
+# ── Secrets and machine-specific state (never commit these) ─────────────
+# Written by the setup wizard: holds the database login.
+/app/brio_logic/config/database.php
+# Created when setup finishes; committing it would lock setup on a new install.
+/app/brio_logic/storage/setup.lock
+# Runtime files the app regenerates itself.
+/app/brio_logic/storage/cache/*
+!/app/brio_logic/storage/cache/.gitignore
+/app/brio_logic/storage/logs/*
+!/app/brio_logic/storage/logs/.gitignore
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# ── Uploaded content (product photos, hero slides, page images) ─────────
+# This is your store's data, not code. Keep the folder's security rules.
+/public/uploads/*
+!/public/uploads/.htaccess
+
+# ── Packages and backups ────────────────────────────────────────────────
+*.zip
+*.bak
+*.sql
+/public_backup_*/
+
+# ── Dependencies and build output (if you ever add them) ────────────────
+node_modules/
+vendor/
+dist/
+*.tsbuildinfo
+
+# ── Editor and operating system files ───────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

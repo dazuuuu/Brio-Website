@@ -1,0 +1,1 @@
+<?php component('sections/register'); ?>
