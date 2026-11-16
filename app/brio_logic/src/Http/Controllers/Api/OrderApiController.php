@@ -12,7 +12,7 @@ final class OrderApiController
     public function place(Request $r): void
     {
         $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
-        Response::json(brio('orders')->place($r->input(), $ip), 201);
+        Response::json(brio('orders')->place($r->input(), $ip, brio('customers')->current()), 201);
     }
 
     // GET /api/admin/orders?status=&page=

@@ -11,8 +11,13 @@ $dealsSubtitle = (string)($block['subtitle'] ?? 'Special limited-time offers on 
       <?php if ($dealsSubtitle !== ''): ?><p class="section__subtitle-centered"><?= e($dealsSubtitle) ?></p><?php endif; ?>
     </div>
     <?php if ($deals): ?>
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 g-md-4">
-        <?php foreach ($deals as $p) component('ui/promo-card', ['p' => $p]); ?>
+      <div class="deals" data-deals>
+        <div class="deals__track" data-deals-track tabindex="0" role="group" aria-label="<?= e($dealsTitle) ?>">
+          <?php foreach ($deals as $p) component('ui/promo-card', ['p' => $p]); ?>
+        </div>
+        <button type="button" class="deals__nav deals__nav--prev" data-deals-prev aria-label="Previous deals"><?= icon('chevron-left', 20) ?></button>
+        <button type="button" class="deals__nav deals__nav--next" data-deals-next aria-label="Next deals"><?= icon('chevron-right', 20) ?></button>
+        <div class="deals__dots" data-deals-dots aria-hidden="true"></div>
       </div>
     <?php endif; ?>
   </div>

@@ -21,9 +21,9 @@ final class PdoOrderRepository implements OrderRepository
 
     public function save(Order $o): Order
     {
-        $this->pdo->prepare('INSERT INTO orders (customer_name, phone, whatsapp, address, notes, channel, items, total, status, ip, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+        $this->pdo->prepare('INSERT INTO orders (customer_name, phone, whatsapp, address, notes, channel, items, total, status, ip, created_at, customer_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
             ->execute([$o->name, $o->phone, $o->whatsapp, $o->address, $o->notes, $o->channel,
-                json_encode($o->items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $o->total, $o->status, $o->ip, $o->createdAt]);
+                json_encode($o->items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $o->total, $o->status, $o->ip, $o->createdAt, $o->customerId]);
         $o->id = (int)$this->pdo->lastInsertId();
         $o->orderNumber = 'BRIO-' . (5000 + $o->id);
         $this->pdo->prepare('UPDATE orders SET order_number = ? WHERE id = ?')->execute([$o->orderNumber, $o->id]);
@@ -35,6 +35,13 @@ final class PdoOrderRepository implements OrderRepository
         $sql = 'SELECT * FROM orders' . ($status ? ' WHERE status = ?' : '') . ' ORDER BY id DESC LIMIT ' . max(1, $limit) . ' OFFSET ' . max(0, $offset);
         $st = $this->pdo->prepare($sql);
         $st->execute($status ? [$status] : []);
+        return array_map($this->hydrate(...), $st->fetchAll());
+    }
+
+    public function forCustomer(int $customerId, int $limit = 50): array
+    {
+        $st = $this->pdo->prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT ' . max(1, $limit));
+        $st->execute([$customerId]);
         return array_map($this->hydrate(...), $st->fetchAll());
     }
 
@@ -78,6 +85,6 @@ final class PdoOrderRepository implements OrderRepository
     private function hydrate(array $r): Order
     {
         return new Order((int)$r['id'], $r['order_number'], $r['customer_name'], $r['phone'], $r['whatsapp'], $r['address'], $r['notes'],
-            $r['channel'], json_decode($r['items'], true) ?: [], (float)$r['total'], $r['status'], $r['ip'], $r['created_at']);
+            $r['channel'], json_decode($r['items'], true) ?: [], (float)$r['total'], $r['status'], $r['ip'], $r['created_at'], isset($r['customer_id']) ? (int)$r['customer_id'] : null);
     }
 }

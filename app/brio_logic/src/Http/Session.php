@@ -6,11 +6,12 @@ namespace Brio\Http;
 /** Secure session start + CSRF token + one-time flash messages. */
 final class Session
 {
-    public static function start(): void
+    /** @param string $name 'brio_admin' for the admin area, 'brio_customer' for shoppers */
+    public static function start(string $name = 'brio_admin'): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) return;
         $https = ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-        session_name('brio_admin');
+        session_name($name);
         session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, 'secure' => $https, 'samesite' => 'Lax']);
         session_start();
     }

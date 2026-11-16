@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Brio\Application\Services;
 
+use Brio\Domain\Customer\Customer;
 use Brio\Domain\Exceptions\NotFoundException;
 use Brio\Domain\Exceptions\RateLimitException;
 use Brio\Domain\Exceptions\ValidationException;
@@ -31,7 +32,7 @@ final class OrderService
     }
 
     /** @return array order summary + whatsappUrl (null when no WhatsApp number is configured) */
-    public function place(array $input, string $ip): array
+    public function place(array $input, string $ip, ?Customer $customer = null): array
     {
         // Honeypot: real people never fill the hidden "website" field. Pretend success, save nothing.
         if (trim((string)($input['website'] ?? '')) !== '') {
@@ -42,11 +43,25 @@ final class OrderService
         }
 
         $ids = array_map(static fn($r) => (int)($r['id'] ?? 0), is_array($input['items'] ?? null) ? $input['items'] : []);
-        $order = Order::place($input, $this->products->findMany($ids), $ip);
+        // A signed-in customer orders directly: their saved details fill anything the form left blank.
+        if ($customer !== null) {
+            foreach (['name' => $customer->fullName(), 'phone' => $customer->phone, 'whatsapp' => $customer->whatsapp, 'address' => (string)$customer->address] as $field => $saved) {
+                if (trim((string)($input[$field] ?? '')) === '') $input[$field] = $saved;
+            }
+        }
+        $order = Order::place($input, $this->products->findMany($ids), $ip, $customer?->id);
         $this->orders->save($order);
         Logger::info('Order placed', ['order' => $order->orderNumber, 'channel' => $order->channel, 'total' => $order->total]);
 
         return $order->toArray() + ['whatsappUrl' => $this->whatsappUrl($order)];
+    }
+
+    /** A customer's own order history, shaped for their account page. */
+    public function forCustomer(int $customerId): array
+    {
+        return array_map(static fn(Order $o) => ['orderNumber' => $o->orderNumber, 'createdAt' => $o->createdAt, 'status' => $o->status, 'total' => $o->total,
+            'items' => array_map(static fn($i) => ['name' => $i['name'], 'quantity' => $i['quantity'], 'price' => $i['price'], 'image' => $i['image'] ?? ''], $o->items)],
+            $this->orders->forCustomer($customerId));
     }
 
     public function paginate(?string $status, int $page, int $perPage): array

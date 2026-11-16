@@ -38,6 +38,23 @@ require __DIR__ . '/_shell_top.php';
         <div class="form-check form-switch adm-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" id="st-account" name="show_account_icon"><label class="form-check-label" for="st-account">Account icon <small class="d-block text-secondary">The person icon that opens sign in / My account.</small></label></div>
         <button type="submit" class="btn adm-btn adm-btn--primary" data-save-header>Save header</button>
       </form>
+
+      <form class="adm-card p-4 adm-settings mt-3" data-accent-form novalidate>
+        <h2 class="adm-section-title">Admin panel colour</h2>
+        <p class="small text-secondary">Pick any colour for buttons, highlights and the sidebar menu. The preview updates as you choose. This only changes the admin, not your store.</p>
+        <div class="adm-swatches mb-3" role="group" aria-label="Admin colour">
+          <?php foreach ([['#f25c1f', 'Orange (default)'], ['#3466e0', 'Blue'], ['#1e8e4e', 'Green'], ['#7a4ce0', 'Purple'], ['#0f9d9a', 'Teal'], ['#d6336c', 'Pink'], ['#334155', 'Slate'], ['#111111', 'Black']] as [$hex, $name]): ?>
+            <button type="button" class="adm-swatch" data-accent-swatch="<?= $hex ?>" style="--c:<?= $hex ?>" aria-label="<?= $name ?>" title="<?= $name ?>"></button>
+          <?php endforeach; ?>
+          <label class="adm-swatch adm-swatch--custom" title="Pick any colour"><input type="color" name="admin_accent" value="#f25c1f" data-accent-input aria-label="Custom admin colour"></label>
+          <code class="ms-2" data-accent-hex>#f25c1f</code>
+        </div>
+        <div class="alert adm-alert adm-alert--error" data-accent-error hidden></div>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="submit" class="btn adm-btn adm-btn--primary" data-save-accent>Save colour</button>
+          <button type="button" class="btn adm-btn adm-btn--ghost" data-reset-accent>Back to default</button>
+        </div>
+      </form>
     </main>
 <?php require __DIR__ . '/_shell_bottom.php'; ?>
 <?php $scripts = ['settings.js']; require __DIR__ . '/_foot.php'; ?>

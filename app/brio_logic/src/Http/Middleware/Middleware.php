@@ -73,6 +73,26 @@ final class Middleware
         };
     }
 
+    /** State-changing requests must be JSON: a plain cross-site HTML form can't send that. */
+    public static function jsonOnly(): callable
+    {
+        return static function (Request $r): bool {
+            if (in_array($r->method, ['GET', 'HEAD'], true) || str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json')) return true;
+            Response::error('Unsupported request.', 415);
+            return false;
+        };
+    }
+
+    /** A signed-in shopper is required. */
+    public static function customer(): callable
+    {
+        return static function (Request $r): bool {
+            if (brio('customers')->current()) return true;
+            Response::error('Please sign in.', 401);
+            return false;
+        };
+    }
+
     public static function safeHasAdmin(): bool
     {
         try { return brio('auth')->hasAdmin(); } catch (\Throwable) { return false; }

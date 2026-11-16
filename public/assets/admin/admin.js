@@ -22,11 +22,11 @@
   function savePref(key, v) { try { localStorage.setItem(STORE_KEY + '.' + key, JSON.stringify(v)); } catch (e) { /* ignore */ } }
 
   var ICON = {
-    sort: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg>',
-    more: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>',
-    star: '<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z"/></svg>',
-    left: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
-    right: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>'
+    sort: '<i class="bi bi-arrow-down-up" style="font-size:12px" aria-hidden="true"></i>',
+    more: '<i class="bi bi-three-dots" style="font-size:18px" aria-hidden="true"></i>',
+    star: '<i class="bi bi-star-fill" style="font-size:13px" aria-hidden="true"></i>',
+    left: '<i class="bi bi-chevron-left" style="font-size:14px" aria-hidden="true"></i>',
+    right: '<i class="bi bi-chevron-right" style="font-size:14px" aria-hidden="true"></i>'
   };
 
   /* ---------------- API ---------------- */

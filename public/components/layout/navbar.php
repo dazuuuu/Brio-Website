@@ -2,6 +2,7 @@
 $items = site_nav('header');
 $q = $route === 'products' ? (string)($_GET['q'] ?? '') : '';
 $flags = site_header_flags();
+$customer = site_customer();
 ?>
 <header class="site-nav">
   <!-- Row 1: search · brand · actions (mobile: menu · brand · actions, then search) -->
@@ -23,8 +24,11 @@ $flags = site_header_flags();
     </a>
 
     <div class="site-nav__actions tw-flex tw-items-center tw-gap-1">
+      <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme" title="Dark theme">
+        <span class="theme-icon theme-icon--moon"><?= icon('moon') ?></span><span class="theme-icon theme-icon--sun"><?= icon('sun') ?></span>
+      </button>
       <?php if ($flags['showAccountIcon']): ?>
-      <a href="<?= url('login') ?>" class="icon-btn" data-account-link aria-label="Sign in to your account" title="Sign In"><?= icon('user') ?></a>
+      <a href="<?= url($customer ? 'account' : 'login') ?>" class="icon-btn" aria-label="<?= $customer ? e('My account (' . $customer['firstName'] . ')') : 'Sign in to your account' ?>" title="<?= $customer ? e('Signed in as ' . $customer['firstName']) : 'Sign In' ?>"><?= icon('user') ?></a>
       <?php endif; ?>
       <button type="button" class="icon-btn" data-bs-toggle="offcanvas" data-bs-target="#cart-drawer" aria-controls="cart-drawer" data-cart-button aria-label="Cart, 0 items">
         <?= icon('cart') ?><span class="cart-badge" data-cart-count hidden>0</span>
@@ -37,8 +41,12 @@ $flags = site_header_flags();
     <div class="container">
       <nav class="site-nav__links" aria-label="Primary">
         <?php foreach ($items as $it): ?>
-          <?php $isLogin = trim((string)parse_url($it['href'], PHP_URL_PATH), '/') === 'login'; ?>
-          <a href="<?= e(site_href($it['href'])) ?>" class="site-nav__link<?= nav_is_active($it, $route, $path) ? ' is-active' : '' ?>"<?= $it['newTab'] ? ' target="_blank" rel="noopener"' : '' ?><?= $isLogin ? ' data-account-link' . ($it['label'] === 'Sign In / Register' ? ' data-account-label' : '') : '' ?>><?= e($it['label']) ?></a>
+          <?php
+            $isLogin = trim((string)parse_url($it['href'], PHP_URL_PATH), '/') === 'login';
+            $href = site_href($it['href']); $label = $it['label'];
+            if ($isLogin && $customer) { $href = url('account'); if ($label === 'Sign In / Register') $label = 'My Account (' . $customer['firstName'] . ')'; }
+          ?>
+          <a href="<?= e($href) ?>" class="site-nav__link<?= nav_is_active($it, $route, $path) ? ' is-active' : '' ?>"<?= $it['newTab'] ? ' target="_blank" rel="noopener"' : '' ?>><?= e($label) ?></a>
         <?php endforeach; ?>
       </nav>
     </div>

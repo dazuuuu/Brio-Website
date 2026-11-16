@@ -15,6 +15,9 @@ interface OrderRepository
 
     public function count(?string $status): int;
 
+    /** A customer's own orders, newest first. @return Order[] */
+    public function forCustomer(int $customerId, int $limit = 50): array;
+
     /** @return array<string,int> status => number of orders */
     public function countsByStatus(): array;
 

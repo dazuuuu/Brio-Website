@@ -197,9 +197,9 @@
     blocksEl.innerHTML = page.blocks.map(function (b, i) {
       return '<section class="adm-card adm-block" data-i="' + i + '"><header class="adm-block__head"><span class="adm-block__type">' + esc(b.type === 'section' ? (SECTIONS[b.name] || [LABELS.section])[0] : LABELS[b.type]) + '</span>' +
         '<div class="adm-block__tools">' +
-        '<button type="button" class="adm-icon-btn" data-act="up" aria-label="Move block up"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-        '<button type="button" class="adm-icon-btn" data-act="down" aria-label="Move block down"' + (i === page.blocks.length - 1 ? ' disabled' : '') + '>▼</button>' +
-        '<button type="button" class="adm-icon-btn text-danger" data-act="del" aria-label="Remove block">✕</button></div></header>' +
+        '<button type="button" class="adm-icon-btn" data-act="up" aria-label="Move block up"' + (i === 0 ? ' disabled' : '') + '><i class="bi bi-chevron-up" aria-hidden="true"></i></button>' +
+        '<button type="button" class="adm-icon-btn" data-act="down" aria-label="Move block down"' + (i === page.blocks.length - 1 ? ' disabled' : '') + '><i class="bi bi-chevron-down" aria-hidden="true"></i></button>' +
+        '<button type="button" class="adm-icon-btn text-danger" data-act="del" aria-label="Remove block"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></header>' +
         '<div class="adm-block__body row g-3">' + blockBody(b) + '</div></section>';
     }).join('');
   }

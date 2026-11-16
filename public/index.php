@@ -12,7 +12,6 @@ define('BRIO_PUBLIC', __DIR__);
 require dirname(__DIR__) . '/app/brio_logic/bootstrap.php';
 require __DIR__ . '/modules/core/helpers.php';
 require __DIR__ . '/modules/products/products.php';
-require __DIR__ . '/modules/account/account.php';
 require __DIR__ . '/modules/site/site.php';
 
 // Let the PHP built-in server serve real static files.

@@ -67,6 +67,30 @@ function site_hero(): array
     return site_try(fn() => brio('hero')->forStorefront(), []);
 }
 
+/** The signed-in shopper (array) or null. Only touches the session when the visitor already has the shopper cookie. */
+function site_customer(): ?array
+{
+    static $cached = false;
+    if ($cached !== false) return $cached;
+    $cached = null;
+    if (isset($_COOKIE['brio_customer']) && site_db_ready()) {
+        $cached = site_try(static function () {
+            \Brio\Http\Session::start('brio_customer');
+            $customer = brio('customers')->current();
+            session_write_close(); // release the session lock straight away
+            return $customer?->toArray();
+        });
+    }
+    return $cached;
+}
+
+/** A safe same-site path from ?redirect= (never an outside address). */
+function site_redirect_param(): string
+{
+    $r = (string)($_GET['redirect'] ?? '');
+    return preg_match('#^/(?!/)[^\\\\\s]*$#', $r) ? $r : '';
+}
+
 /** Header options from Settings (search box, account icon). Defaults to showing everything. */
 function site_header_flags(): array
 {

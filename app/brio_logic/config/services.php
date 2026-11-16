@@ -1,6 +1,7 @@
 <?php
 // Wiring: which concrete class satisfies each dependency.
 use Brio\Application\Services\AuthService;
+use Brio\Application\Services\CustomerService;
 use Brio\Application\Services\HeroService;
 use Brio\Application\Services\LinkResolver;
 use Brio\Application\Services\NavigationService;
@@ -16,6 +17,7 @@ use Brio\Infrastructure\Database\Connection;
 use Brio\Infrastructure\Database\Migrator;
 use Brio\Infrastructure\Files\FileHandler;
 use Brio\Infrastructure\Persistence\PdoAdminRepository;
+use Brio\Infrastructure\Persistence\PdoCustomerRepository;
 use Brio\Infrastructure\Persistence\PdoHeroSlideRepository;
 use Brio\Infrastructure\Persistence\PdoNavRepository;
 use Brio\Infrastructure\Persistence\PdoOrderRepository;
@@ -41,6 +43,7 @@ return [
     'navigation' => fn() => new NavigationService(new PdoNavRepository(brio('db')), brio('links')),
     'systempages' => fn() => new SystemPagesService(new PdoPageRepository(brio('db')), new PdoSettingsRepository(brio('db'))),
     'reset'    => fn() => new ResetService(new PdoProductRepository(brio('db')), new PdoOrderRepository(brio('db')), brio('files'), brio('auth')),
+    'customers' => fn() => new CustomerService(new PdoCustomerRepository(brio('db'))),
     'settings' => fn() => new SettingsService(new PdoSettingsRepository(brio('db'))),
     'orders'   => fn() => new OrderService(new PdoOrderRepository(brio('db')), new PdoProductRepository(brio('db')), brio('settings'), brio_public_url()),
 ];

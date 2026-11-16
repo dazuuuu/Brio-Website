@@ -19,8 +19,8 @@
     return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) > 150 ? '#1b2e24' : '#ffffff';
   }
 
-  function ico(path) { return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>'; }
-  var I = { up: ico('<path d="m6 15 6-6 6 6"/>'), down: ico('<path d="m6 9 6 6 6-6"/>'), edit: ico('<path d="M4 20h4L19 9l-4-4L4 16v4Z"/>'), del: ico('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>') };
+  function bi(name) { return '<i class="bi bi-' + name + '" style="font-size:16px" aria-hidden="true"></i>'; }
+  var I = { up: bi('chevron-up'), down: bi('chevron-down'), edit: bi('pencil-square'), del: bi('trash3') };
 
   function render() {
     if (!slides.length) {

@@ -27,13 +27,14 @@ final class Order
         public string $status,
         public string $ip,
         public string $createdAt,
+        public ?int $customerId = null,
     ) {}
 
     /**
      * @param array<int,Product> $products catalogue rows keyed by id (only the ones the cart mentions)
      * @throws ValidationException
      */
-    public static function place(array $in, array $products, string $ip): self
+    public static function place(array $in, array $products, string $ip, ?int $customerId = null): self
     {
         $e = [];
         $channel = ($in['channel'] ?? 'form') === 'whatsapp' ? 'whatsapp' : 'form';
@@ -78,7 +79,7 @@ final class Order
         if ($e) throw new ValidationException($e, ($e['items'][0] ?? null) ?: 'Please check the highlighted fields.');
 
         return new self(null, null, $name, $phone, $whatsapp, $address !== '' ? $address : null, $notes !== '' ? $notes : null,
-            $channel, $items, round($total, 2), 'new', $ip, date('Y-m-d H:i:s'));
+            $channel, $items, round($total, 2), 'new', $ip, date('Y-m-d H:i:s'), $customerId);
     }
 
     public static function phoneOk(string $v): bool
@@ -92,6 +93,6 @@ final class Order
     {
         return ['id' => $this->id, 'orderNumber' => $this->orderNumber, 'name' => $this->name, 'phone' => $this->phone,
                 'whatsapp' => $this->whatsapp, 'address' => $this->address, 'notes' => $this->notes, 'channel' => $this->channel,
-                'items' => $this->items, 'total' => $this->total, 'status' => $this->status, 'createdAt' => $this->createdAt];
+                'items' => $this->items, 'total' => $this->total, 'status' => $this->status, 'createdAt' => $this->createdAt, 'customerId' => $this->customerId];
     }
 }

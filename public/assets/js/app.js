@@ -5,9 +5,6 @@
 
   var BASE = (window.BRIO && window.BRIO.base) || '';
   var CART_KEY = 'brio.cart.v1';
-  var AUTH_KEY = 'brio.auth.user.v1';
-  var ORDERS_KEY = 'brio.orders.v1';
-  var DEMO_EMAIL = 'amani.kariuki@example.com';
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
@@ -15,7 +12,6 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (m) { return '&#' + m.charCodeAt(0) + ';'; }); }
   function money(n) { return 'KSh ' + Math.round(n).toLocaleString('en-KE'); }
   function formatDate(iso) { return new Date(iso).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' }); }
-  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms || 450); }); }
 
   function read(key, fallback) {
     try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; }
@@ -128,111 +124,118 @@
   renderCart();
 
   /* ------------------------------------------------------------------
-     Auth (mock, mirrors mockApi.login / register)
+     Customer accounts (real: kept on the server)
      ------------------------------------------------------------------ */
-  var DEMO_CUSTOMER = {
-    firstName: 'Amani', lastName: 'Kariuki', email: DEMO_EMAIL, phone: '+254 700 123 456',
-    memberSince: '2024-03-14T09:00:00Z', demo: true
-  };
-  function getUser() { var u = read(AUTH_KEY, null); return u && typeof u.email === 'string' && typeof u.firstName === 'string' ? u : null; }
-
-  var user = getUser();
-  $all('[data-account-link]').forEach(function (a) {
-    a.href = url(user ? 'account' : 'login');
-    if (a.hasAttribute('data-account-label')) a.textContent = user ? 'My Account (' + user.firstName + ')' : 'Sign In / Register';
-    else {
-      a.setAttribute('aria-label', user ? 'My account (' + user.firstName + ')' : 'Sign in to your account');
-      a.title = user ? 'Signed in as ' + user.firstName : 'Sign In';
-    }
-  });
-
-  function showAuthError(msg) {
-    var el = $('[data-auth-error]');
-    if (!el) return;
-    el.textContent = msg || '';
-    el.hidden = !msg;
+  function customerApi(path, method, body) {
+    return fetch(BASE + '/api/customer/' + path, {
+      method: method || 'GET', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return { success: false, message: 'Unexpected server response.' }; }).then(function (json) {
+        if (!res.ok || !json.success) { var err = new Error(json.message || 'Something went wrong. Please try again.'); err.errors = json.errors || {}; err.status = res.status; throw err; }
+        return json.data;
+      });
+    });
+  }
+  function safeRedirect(v) { return typeof v === 'string' && /^\/(?!\/)[^\\\s]*$/.test(v) ? v : null; }
+  function authError(msg) { var el = $('[data-auth-error]'); if (el) { el.textContent = msg || ''; el.hidden = !msg; } }
+  function showFieldErrors(form, err) {
+    Object.keys(err.errors || {}).forEach(function (f) {
+      var input = form.elements[f];
+      if (input && input.classList) input.classList.add('is-invalid');
+      var slot = $('[data-error-for="' + f + '"]', form);
+      if (slot) slot.textContent = err.errors[f][0];
+    });
+  }
+  function clearFieldErrors(form) {
+    $all('[data-error-for]', form).forEach(function (el) { el.textContent = ''; });
+    $all('.is-invalid', form).forEach(function (el) { el.classList.remove('is-invalid'); });
+  }
+  function afterSignIn() {
+    var r = safeRedirect(new URLSearchParams(location.search).get('redirect'));
+    location.replace(r ? BASE + r : url('account'));
   }
 
   var loginForm = $('[data-login-form]');
   if (loginForm) {
     loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      showAuthError(null);
+      authError(null);
       var email = loginForm.email.value.trim(), password = loginForm.password.value;
-      if (!email || !password) return showAuthError('Please enter both your email address and password.');
-      var btn = $('[type=submit]', loginForm), fields = $all('input, button', loginForm);
-      fields.forEach(function (f) { f.disabled = true; });
+      if (!email || !password) return authError('Please enter your email address and password.');
+      var btn = $('[type=submit]', loginForm);
       setLoading(btn, true);
-      delay().then(function () {
-        if (password.length < 4) throw new Error('Invalid email or password.');
-        var customer = DEMO_CUSTOMER;
-        if (email.toLowerCase() !== DEMO_EMAIL) {
-          var namePart = email.split('@')[0] || 'User';
-          customer = Object.assign({}, DEMO_CUSTOMER, { firstName: namePart.charAt(0).toUpperCase() + namePart.slice(1), lastName: '', email: email, demo: false });
-        }
-        write(AUTH_KEY, customer);
-        var redirect = new URLSearchParams(location.search).get('redirect');
-        location.replace(redirect && redirect.charAt(0) === '/' && redirect.charAt(1) !== '/' ? BASE + redirect : url('account'));
-      }).catch(function (err) {
-        showAuthError(err.message || 'Unable to sign in. Please verify your credentials.');
-        fields.forEach(function (f) { f.disabled = false; });
-        setLoading(btn, false);
-      });
+      customerApi('login', 'POST', { email: email, password: password }).then(afterSignIn)
+        .catch(function (err) { authError(err.message); setLoading(btn, false); });
     });
-    $('[data-demo-fill]').addEventListener('click', function () {
-      loginForm.email.value = DEMO_EMAIL;
-      loginForm.password.value = 'secret123';
-      showAuthError(null);
-    });
-    $('[data-forgot]').addEventListener('click', function (e) { e.preventDefault(); alert('Password reset link has been sent to your email.'); });
   }
 
   var regForm = $('[data-register-form]');
   if (regForm) {
-    $all('a[href^="#"]', regForm).forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); }); });
     regForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      showAuthError(null);
-      var f = regForm;
-      var v = { firstName: f.firstName.value.trim(), lastName: f.lastName.value.trim(), email: f.email.value.trim(), phone: f.phone.value.trim(), password: f.password.value };
-      if (!v.firstName || !v.lastName || !v.email || !v.password) return showAuthError('Please fill in all required fields.');
-      if (v.password.length < 6) return showAuthError('Password must be at least 6 characters long.');
-      if (v.password !== f.confirmPassword.value) return showAuthError('Passwords do not match. Please re-enter your password.');
-      if (!f.terms.checked) return showAuthError('Please accept the terms of service to create your account.');
-      var btn = $('[type=submit]', f), fields = $all('input, button', f);
-      fields.forEach(function (x) { x.disabled = true; });
+      authError(null);
+      clearFieldErrors(regForm);
+      var f = regForm.elements;
+      var btn = $('[type=submit]', regForm);
       setLoading(btn, true);
-      delay().then(function () {
-        write(AUTH_KEY, { firstName: v.firstName, lastName: v.lastName, email: v.email.toLowerCase(), phone: v.phone || null, memberSince: new Date().toISOString(), addresses: [] });
-        location.replace(url('account'));
+      customerApi('register', 'POST', {
+        firstName: f.firstName.value, lastName: f.lastName.value, email: f.email.value, phone: f.phone.value, whatsapp: f.whatsapp.value,
+        address: f.address.value, password: f.password.value, confirm: f.confirm.value, terms: f.terms.checked
+      }).then(afterSignIn).catch(function (err) {
+        authError(err.message);
+        showFieldErrors(regForm, err);
+        setLoading(btn, false);
       });
     });
   }
 
-  /* ------------------------------------------------------------------
-     Account page: show the signed-in customer + locally placed orders
-     ------------------------------------------------------------------ */
-  var account = $('[data-account]');
-  if (account) {
-    if (user) {
-      $('[data-account-greeting]').textContent = 'Hi, ' + user.firstName;
-      $('[data-profile-name]').textContent = (user.firstName + ' ' + (user.lastName || '')).trim();
-      $('[data-profile-initials]').textContent = (user.firstName.charAt(0) + (user.lastName || '').charAt(0)).toUpperCase();
-      $('[data-profile-email]').textContent = user.email;
-      $('[data-profile-phone]').textContent = user.phone || '—';
-      $('[data-profile-since]').textContent = formatDate(user.memberSince);
-      if (Array.isArray(user.addresses) && !user.addresses.length) { $('[data-addresses]').hidden = true; $('[data-addresses-empty]').hidden = false; }
+  // Sign out (login/register "you're signed in" cards and the account page)
+  document.addEventListener('click', function (e) {
+    var out = e.target.closest('[data-customer-logout]');
+    if (!out) return;
+    out.disabled = true;
+    customerApi('logout', 'POST').catch(function () {}).then(function () { location.href = url('login'); });
+  });
+
+  // Account page: contact details, password, order history
+  var accountEl = $('[data-account]');
+  if (accountEl) {
+    var STATUS = { 'new': ['Received', 'processing'], contacted: ['Being processed', 'processing'], completed: ['Completed', 'completed'], cancelled: ['Cancelled', 'cancelled'] };
+    var ordersBody = $('[data-orders-body]', accountEl);
+
+    if (ordersBody) {
+      customerApi('orders').then(function (orders) {
+        ordersBody.innerHTML = orders.length ? orders.map(function (o) {
+          var st = STATUS[o.status] || [o.status, 'processing'];
+          return '<tr><th scope="row">' + esc(o.orderNumber) + '</th><td>' + esc(formatDate(o.createdAt.replace(' ', 'T'))) + '</td><td><ul class="orders-table__items">' +
+            o.items.map(function (i) { return '<li>' + (+i.quantity) + ' × ' + esc(i.name) + '</li>'; }).join('') + '</ul></td><td class="text-end">' + money(o.total) +
+            '</td><td><span class="status status--' + st[1] + '">' + esc(st[0]) + '</span></td></tr>';
+        }).join('') : '<tr><td colspan="5" class="text-center text-secondary py-4">No orders yet. <a href="' + url('products') + '">Start shopping</a></td></tr>';
+      }).catch(function () { ordersBody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-4">We couldn’t load your orders. Please refresh.</td></tr>'; });
     }
-    var labels = { processing: 'Processing', completed: 'Completed', cancelled: 'Cancelled' };
-    var local = read(ORDERS_KEY, []);
-    if (Array.isArray(local) && local.length) {
-      $('[data-orders-body]').insertAdjacentHTML('afterbegin', local.map(function (o) {
-        return '<tr><th scope="row">' + esc(o.orderNumber) + '</th><td>' + esc(formatDate(o.createdAt)) + '</td><td><ul class="orders-table__items">' +
-          o.items.map(function (i) { return '<li>' + (+i.quantity) + ' × ' + esc(i.name) + '</li>'; }).join('') +
-          '</ul></td><td class="text-end">' + money(o.total) + '</td><td><span class="status status--' + esc(o.status) + '">' + esc(labels[o.status] || o.status) + '</span></td></tr>';
-      }).join(''));
+
+    function bindAccountForm(form, run, okText) {
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearFieldErrors(form);
+        var err = $('[data-form-error]', form), ok = $('[data-form-ok]', form), btn = $('[type=submit]', form);
+        err.hidden = true; ok.hidden = true;
+        setLoading(btn, true);
+        run(form.elements).then(function () { ok.textContent = okText; ok.hidden = false; })
+          .catch(function (er) { err.textContent = er.message; err.hidden = false; showFieldErrors(form, er); })
+          .then(function () { setLoading(btn, false); });
+      });
     }
-    $('[data-sign-out]').addEventListener('click', function () { write(AUTH_KEY, null); location.href = url('login'); });
+    bindAccountForm($('[data-details-form]', accountEl), function (f) {
+      return customerApi('me', 'PATCH', { firstName: f.firstName.value, lastName: f.lastName.value, phone: f.phone.value, whatsapp: f.whatsapp.value, address: f.address.value });
+    }, 'Saved. Checkout will use these details.');
+    var pwForm = $('[data-password-form]', accountEl);
+    bindAccountForm(pwForm, function (f) {
+      return customerApi('password', 'POST', { current: f.current.value, 'new': f['new'].value, confirm: f.confirm.value }).then(function () { pwForm.reset(); });
+    }, 'Password changed.');
   }
 
   /* ------------------------------------------------------------------
@@ -291,6 +294,68 @@
   }
 
   /* ------------------------------------------------------------------
+     Light / dark theme: per visitor, for this browser session only
+     ------------------------------------------------------------------ */
+  (function () {
+    var html = document.documentElement, meta = $('meta[name="theme-color"]');
+    function paint() {
+      var dark = html.getAttribute('data-theme') === 'dark';
+      $all('[data-theme-toggle]').forEach(function (b) {
+        b.setAttribute('aria-pressed', dark ? 'true' : 'false');
+        b.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+        b.title = dark ? 'Light theme' : 'Dark theme';
+      });
+      if (meta) meta.setAttribute('content', dark ? '#0e1712' : '#8CC63F');
+    }
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('[data-theme-toggle]')) return;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      html.setAttribute('data-bs-theme', next);
+      try { sessionStorage.setItem('brio.theme', next); } catch (err) { /* storage blocked: still works until reload */ }
+      paint();
+    });
+    paint();
+  })();
+
+  /* ------------------------------------------------------------------
+     Daily Deals carousel (tablet and phone): swipe, arrows, dots
+     ------------------------------------------------------------------ */
+  $all('[data-deals]').forEach(function (root) {
+    var track = $('[data-deals-track]', root), dotsEl = $('[data-deals-dots]', root);
+    var items = $all('.deals__item', track), prev = $('[data-deals-prev]', root), next = $('[data-deals-next]', root);
+    if (!items.length) return;
+    var ticking = false;
+
+    function stepWidth() {
+      var gap = parseFloat(getComputedStyle(track).columnGap);
+      return items[0].getBoundingClientRect().width + (isNaN(gap) ? 16 : gap);
+    }
+    function current() { return Math.max(0, Math.min(items.length - 1, Math.round(track.scrollLeft / stepWidth()))); }
+    function update() {
+      var scrollable = track.scrollWidth > track.clientWidth + 2;
+      root.classList.toggle('is-scrollable', scrollable);
+      var i = current(), atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+      $all('.deals__dot', dotsEl).forEach(function (d, n) { d.classList.toggle('is-active', n === i); });
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = atEnd;
+    }
+    dotsEl.innerHTML = items.map(function (_, n) { return '<button type="button" class="deals__dot" tabindex="-1" data-i="' + n + '"></button>'; }).join('');
+    dotsEl.addEventListener('click', function (e) {
+      var d = e.target.closest('[data-i]');
+      if (d) track.scrollTo({ left: +d.dataset.i * stepWidth(), behavior: 'smooth' });
+    });
+    prev.addEventListener('click', function () { track.scrollBy({ left: -stepWidth(), behavior: 'smooth' }); });
+    next.addEventListener('click', function () { track.scrollBy({ left: stepWidth(), behavior: 'smooth' }); });
+    track.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; update(); }); } }, { passive: true });
+    track.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); next.click(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); prev.click(); }
+    });
+    window.addEventListener('resize', update);
+    update();
+  });
+
+  /* ------------------------------------------------------------------
      Checkout page: contact form → saved order, or straight to WhatsApp
      ------------------------------------------------------------------ */
   var checkoutEl = $('[data-checkout-page]');
@@ -319,10 +384,12 @@
     }
 
     // "Same as phone" keeps the WhatsApp field in step until the customer types their own.
-    var same = $('#co-same'), phoneEl = cform.elements.phone, waEl = cform.elements.whatsapp;
-    function syncWa() { if (same.checked) waEl.value = phoneEl.value; waEl.readOnly = same.checked; }
-    phoneEl.addEventListener('input', syncWa);
-    same.addEventListener('change', syncWa);
+    var same = $('#co-same'), phoneEl = cform.elements.phone, waEl = cform.elements.whatsapp; // absent when a signed-in shopper orders directly
+    var signedIn = cform.dataset.signedIn === '1';
+    function syncWa() { if (!same || !phoneEl || !waEl) return; if (same.checked) waEl.value = phoneEl.value; waEl.readOnly = same.checked; }
+    if (phoneEl) phoneEl.addEventListener('input', syncWa);
+    if (same) same.addEventListener('change', syncWa);
+    function val(name) { return cform.elements[name] ? cform.elements[name].value : ''; }
 
     function clearErrors() {
       var box = $('[data-checkout-error]', checkoutEl);
@@ -349,8 +416,8 @@
       clearErrors();
       syncWa();
       var payload = {
-        channel: channel, name: cform.elements.name.value, phone: phoneEl.value, whatsapp: waEl.value,
-        address: cform.elements.address.value, notes: cform.elements.notes.value, website: cform.elements.website.value,
+        channel: channel, name: val('name'), phone: val('phone'), whatsapp: val('whatsapp'),
+        address: val('address'), notes: val('notes'), website: val('website'),
         items: cart.map(function (i) { return { id: i.productId, quantity: i.quantity }; })
       };
       // Open the WhatsApp tab right now, inside the click, so pop-up blockers allow it; we point it at the chat once the order is saved.
@@ -366,11 +433,6 @@
           });
         })
         .then(function (order) {
-          var orders = read(ORDERS_KEY, []);
-          orders.unshift({ id: order.id, orderNumber: order.orderNumber, createdAt: new Date().toISOString(), status: 'processing',
-            items: order.items.map(function (i) { return { name: i.name, quantity: i.quantity }; }), total: order.total });
-          write(ORDERS_KEY, orders);
-
           finished = true;
           cart = [];
           saveCart();
@@ -378,6 +440,7 @@
           $('[data-done-number]', checkoutEl).textContent = order.orderNumber;
           var text = $('[data-done-text]', checkoutEl), waLink = $('[data-done-wa]', checkoutEl);
           waLink.hidden = !order.whatsappUrl;
+          $('[data-done-account]', checkoutEl).hidden = !signedIn;
           if (order.whatsappUrl) waLink.href = order.whatsappUrl;
           text.textContent = channel === 'whatsapp'
             ? (order.whatsappUrl ? 'We opened WhatsApp with your order ready to send. If it didn’t open, use the button below.' : 'We’ve saved your order and will be in touch shortly.')

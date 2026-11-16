@@ -5,8 +5,8 @@ $tag = $p['dealTag'] ?? '';
 $tone = $p['dealTone'] ?: 'mint';
 $soldOut = $p['stock'] <= 0;
 ?>
-<div class="col">
-  <article class="promo-card promo-card--<?= $tone ?> h-100" aria-label="<?= e($p['name']) ?>">
+<div class="deals__item">
+  <article class="promo-card promo-card--<?= $tone ?>" aria-label="<?= e($p['name']) ?>">
     <div class="promo-card__content">
       <span class="promo-card__eyebrow"><?= e($eyebrow) ?></span>
       <h3 class="promo-card__title"><?= e($p['name']) ?></h3>

@@ -23,9 +23,9 @@
       '<div class="adm-navrow__tools">' +
         '<label class="form-check mb-0 small"><input class="form-check-input" type="checkbox" data-newtab' + (item.newTab ? ' checked' : '') + '> <span class="form-check-label">New tab</span></label>' +
         '<div class="form-check form-switch adm-switch mb-0"><input class="form-check-input" type="checkbox" role="switch" data-active' + (item.isActive ? ' checked' : '') + ' aria-label="Show this link"><label class="form-check-label small">Show</label></div>' +
-        '<span class="adm-navrow__move"><button type="button" class="adm-icon-btn" data-act="up" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-        '<button type="button" class="adm-icon-btn" data-act="down" aria-label="Move down"' + (i === n - 1 ? ' disabled' : '') + '>▼</button>' +
-        '<button type="button" class="adm-icon-btn text-danger" data-act="del" aria-label="Remove link">✕</button></span>' +
+        '<span class="adm-navrow__move"><button type="button" class="adm-icon-btn" data-act="up" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '><i class="bi bi-chevron-up" aria-hidden="true"></i></button>' +
+        '<button type="button" class="adm-icon-btn" data-act="down" aria-label="Move down"' + (i === n - 1 ? ' disabled' : '') + '><i class="bi bi-chevron-down" aria-hidden="true"></i></button>' +
+        '<button type="button" class="adm-icon-btn text-danger" data-act="del" aria-label="Remove link"><i class="bi bi-x-lg" aria-hidden="true"></i></button></span>' +
       '</div></div>';
   }
 

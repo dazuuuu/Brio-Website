@@ -20,6 +20,7 @@ require __DIR__ . '/_shell_top.php';
             <h2 class="adm-section-title mt-4">This stays exactly as it is</h2>
             <ul class="adm-resetlist adm-resetlist--keep">
               <li>Your admin account and password</li>
+              <li>Customer accounts (their saved contact details; their order history is cleared with the orders)</li>
               <li>Your pages, including the built-in ones</li>
               <li>Hero slides and their images</li>
               <li>Header and footer menus</li>

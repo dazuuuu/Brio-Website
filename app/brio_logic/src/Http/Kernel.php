@@ -27,7 +27,14 @@ final class Kernel
         });
 
         $request = Request::capture($path);
-        Session::start();
+        // Admin pages and the admin API use the admin cookie; everything else belongs to shoppers.
+        $adminArea = (bool)preg_match('#^(admin|api/admin|setup)(/|$)#', $path);
+        // A shopper without a cookie stays a guest: no session (and no cookie) until they sign in or register.
+        if ($adminArea) {
+            Session::start('brio_admin');
+        } elseif (isset($_COOKIE['brio_customer']) || preg_match('#^api/customer/(login|register)$#', $path)) {
+            Session::start('brio_customer');
+        }
         $router = new Router();
         (require BRIO_ROOT . '/routes/api.php')($router);
         (require BRIO_ROOT . '/routes/admin.php')($router);

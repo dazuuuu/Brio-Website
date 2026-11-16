@@ -1,4 +1,9 @@
-<?php $wa = site_whatsapp_enabled(); ?>
+<?php
+$wa = site_whatsapp_enabled();
+$customer = site_customer();
+$direct = $customer !== null && $customer['hasContactDetails'];   // signed in with saved details: order in one click
+$val = static fn(string $k): string => e((string)($customer[$k] ?? ''));
+?>
 <div class="container page" data-checkout-page>
   <header class="page__head">
     <div><p class="eyebrow">Checkout</p><h1>Complete your order</h1>
@@ -12,22 +17,44 @@
 
   <div class="row g-4" data-checkout-main hidden>
     <div class="col-lg-7">
-      <form class="checkout-card" data-checkout-form novalidate>
-        <h2 class="checkout-card__title">Your details</h2>
-        <div class="alert auth-alert" role="alert" data-checkout-error hidden></div>
-        <div class="row g-3">
-          <div class="col-12 form-group-brio"><label class="form-label" for="co-name">Full name *</label>
-            <input id="co-name" name="name" class="form-control" autocomplete="name" placeholder="e.g. Jane Wanjiku"><div class="invalid-feedback" data-error-for="name"></div></div>
-          <div class="col-sm-6 form-group-brio"><label class="form-label" for="co-phone">Phone number *</label>
-            <input id="co-phone" name="phone" type="tel" class="form-control" autocomplete="tel" placeholder="+254 700 000 000"><div class="invalid-feedback" data-error-for="phone"></div></div>
-          <div class="col-sm-6 form-group-brio"><label class="form-label" for="co-wa">WhatsApp number *</label>
-            <input id="co-wa" name="whatsapp" type="tel" class="form-control" placeholder="+254 700 000 000"><div class="invalid-feedback" data-error-for="whatsapp"></div>
-            <div class="form-check mt-1"><input class="form-check-input" type="checkbox" id="co-same" checked><label class="form-check-label small" for="co-same">Same as my phone number</label></div></div>
-          <div class="col-12 form-group-brio"><label class="form-label" for="co-address">Delivery location / address <span class="text-secondary fw-normal">(optional)</span></label>
-            <input id="co-address" name="address" class="form-control" autocomplete="street-address" placeholder="Estate, street, town"></div>
-          <div class="col-12 form-group-brio"><label class="form-label" for="co-notes">Order notes <span class="text-secondary fw-normal">(optional)</span></label>
-            <textarea id="co-notes" name="notes" rows="2" class="form-control" maxlength="500"></textarea></div>
-        </div>
+      <form class="checkout-card" data-checkout-form data-signed-in="<?= $customer ? '1' : '0' ?>" novalidate>
+        <?php if ($direct): ?>
+          <h2 class="checkout-card__title">Ordering as <?= e($customer['firstName']) ?></h2>
+          <div class="checkout-who">
+            <div><span>Name</span><b><?= e($customer['fullName']) ?></b></div>
+            <div><span>Phone</span><b><?= e($customer['phone']) ?></b></div>
+            <div><span>WhatsApp</span><b><?= e($customer['whatsapp']) ?></b></div>
+            <a href="<?= url('account#details') ?>">Change my details</a>
+          </div>
+          <div class="alert auth-alert" role="alert" data-checkout-error hidden></div>
+          <div class="row g-3">
+            <div class="col-12 form-group-brio"><label class="form-label" for="co-address">Delivery location <span class="text-secondary fw-normal">(optional)</span></label>
+              <input id="co-address" name="address" class="form-control" value="<?= $val('address') ?>" placeholder="Estate, street, town"></div>
+            <div class="col-12 form-group-brio"><label class="form-label" for="co-notes">Order notes <span class="text-secondary fw-normal">(optional)</span></label>
+              <textarea id="co-notes" name="notes" rows="2" class="form-control" maxlength="500"></textarea></div>
+          </div>
+        <?php else: ?>
+          <h2 class="checkout-card__title">Your details</h2>
+          <?php if (!$customer): ?>
+            <p class="checkout-account-note">Have an account? <a href="<?= url('login?redirect=' . rawurlencode('/checkout')) ?>">Sign in</a> or <a href="<?= url('register?redirect=' . rawurlencode('/checkout')) ?>">create one</a> and ordering becomes one click. No account needed, just fill in the form.</p>
+          <?php else: ?>
+            <p class="checkout-account-note">Add your phone and WhatsApp to <a href="<?= url('account#details') ?>">your account</a> to order in one click next time.</p>
+          <?php endif; ?>
+          <div class="alert auth-alert" role="alert" data-checkout-error hidden></div>
+          <div class="row g-3">
+            <div class="col-12 form-group-brio"><label class="form-label" for="co-name">Full name *</label>
+              <input id="co-name" name="name" class="form-control" autocomplete="name" placeholder="e.g. Jane Wanjiku" value="<?= $val('fullName') ?>"><div class="invalid-feedback" data-error-for="name"></div></div>
+            <div class="col-sm-6 form-group-brio"><label class="form-label" for="co-phone">Phone number *</label>
+              <input id="co-phone" name="phone" type="tel" class="form-control" autocomplete="tel" placeholder="+254 700 000 000" value="<?= $val('phone') ?>"><div class="invalid-feedback" data-error-for="phone"></div></div>
+            <div class="col-sm-6 form-group-brio"><label class="form-label" for="co-wa">WhatsApp number *</label>
+              <input id="co-wa" name="whatsapp" type="tel" class="form-control" placeholder="+254 700 000 000" value="<?= $val('whatsapp') ?>"><div class="invalid-feedback" data-error-for="whatsapp"></div>
+              <div class="form-check mt-1"><input class="form-check-input" type="checkbox" id="co-same" <?= ($customer['whatsapp'] ?? '') === '' || ($customer['whatsapp'] ?? '') === ($customer['phone'] ?? '') ? 'checked' : '' ?>><label class="form-check-label small" for="co-same">Same as my phone number</label></div></div>
+            <div class="col-12 form-group-brio"><label class="form-label" for="co-address">Delivery location / address <span class="text-secondary fw-normal">(optional)</span></label>
+              <input id="co-address" name="address" class="form-control" autocomplete="street-address" placeholder="Estate, street, town" value="<?= $val('address') ?>"></div>
+            <div class="col-12 form-group-brio"><label class="form-label" for="co-notes">Order notes <span class="text-secondary fw-normal">(optional)</span></label>
+              <textarea id="co-notes" name="notes" rows="2" class="form-control" maxlength="500"></textarea></div>
+          </div>
+        <?php endif; ?>
         <div class="visually-hidden" aria-hidden="true"><label>Leave this empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
 
         <div class="checkout-actions">
@@ -38,7 +65,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.200Zm4.500-6.100c-.2-.1-1.500-.7-1.700-.8-.2-.1-.4-.1-.6.100l-.8 1c-.1.200-.3.200-.5.100a6.700 6.700 0 0 1-3.300-2.900c-.2-.4.200-.4.700-1.300.1-.2 0-.3 0-.5l-.8-1.800c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.300 3 3 0 0 0-.9 2.200 5.200 5.200 0 0 0 1.100 2.800 11.900 11.900 0 0 0 4.600 4c1.700.7 2.400.8 3.300.6.500-.1 1.500-.6 1.700-1.200.2-.6.200-1.100.1-1.200-.1-.2-.2-.2-.5-.4Z"/></svg>
               Order via WhatsApp
             </button>
-            <p class="checkout-note">No form needed: your cart opens in WhatsApp as a ready-to-send message.</p>
+            <p class="checkout-note">No form needed: your cart opens in WhatsApp as a ready-to-send message<?= $customer ? ' with your saved details' : '' ?>.</p>
           <?php endif; ?>
         </div>
       </form>
@@ -61,6 +88,7 @@
     <p class="text-secondary" data-done-text></p>
     <div class="d-flex flex-wrap justify-content-center gap-2">
       <a class="btn btn-brio btn-brio--whatsapp" data-done-wa href="#" target="_blank" rel="noopener" hidden>Send it on WhatsApp</a>
+      <a class="btn btn-brio btn-brio--secondary" data-done-account href="<?= url('account#orders-title') ?>" hidden>View my orders</a>
       <a class="btn btn-brio btn-brio--primary" href="<?= url('products') ?>">Continue shopping</a>
     </div>
   </div>

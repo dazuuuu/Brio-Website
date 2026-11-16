@@ -1,5 +1,6 @@
 <?php
 // JSON API. Public catalogue endpoints + admin endpoints (session + CSRF protected).
+use Brio\Http\Controllers\Api\CustomerApiController;
 use Brio\Http\Controllers\Api\HeroApiController;
 use Brio\Http\Controllers\Api\LookupApiController;
 use Brio\Http\Controllers\Api\NavApiController;
@@ -29,7 +30,19 @@ return static function (Router $router): void {
 
     // Public checkout
     $order = static fn(string $m) => static fn(Request $r) => (new OrderApiController())->$m($r);
-    $router->post('api/orders', $order('place'), [M::installed(), M::sameOrigin()]);
+    $router->post('api/orders', $order('place'), [M::installed(), M::sameOrigin(), M::jsonOnly()]);
+
+    // Shopper accounts
+    $cust = static fn(string $m) => static fn(Request $r) => (new CustomerApiController())->$m($r);
+    $open = [M::installed(), M::sameOrigin(), M::jsonOnly()];
+    $signedIn = [...$open, M::customer()];
+    $router->post('api/customer/register', $cust('register'), $open);
+    $router->post('api/customer/login', $cust('login'), $open);
+    $router->post('api/customer/logout', $cust('logout'), $open);
+    $router->get('api/customer/me', $cust('me'), $signedIn);
+    $router->patch('api/customer/me', $cust('update'), $signedIn);
+    $router->post('api/customer/password', $cust('password'), $signedIn);
+    $router->get('api/customer/orders', $cust('orders'), $signedIn);
 
     // Admin: everything below needs a signed-in admin and a CSRF token
     $make = static fn(string $class, string $m) => static fn(Request $r) => (new $class())->$m($r);

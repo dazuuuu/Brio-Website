@@ -20,7 +20,7 @@
     $('[data-orders-body]').innerHTML = rows.length ? rows.map(function (o) {
       var qty = o.items.reduce(function (n, i) { return n + i.quantity; }, 0);
       return '<tr data-row="' + o.id + '"><th scope="row">' + esc(o.orderNumber) + '</th>' +
-        '<td>' + (o.name ? esc(o.name) + '<span class="adm-prod__cat">' + esc(o.phone || o.whatsapp) + '</span>' : '<span class="text-secondary">Not given</span>') + '</td>' +
+        '<td>' + (o.name ? esc(o.name) + (o.customerId ? ' <span class="adm-status adm-status--in">Account</span>' : '') + '<span class="adm-prod__cat">' + esc(o.phone || o.whatsapp) + '</span>' : '<span class="text-secondary">Not given</span>') + '</td>' +
         '<td>' + qty + ' item' + (qty === 1 ? '' : 's') + '</td><td>' + A.money(o.total) + '</td>' +
         '<td><span class="adm-status adm-status--' + (o.channel === 'whatsapp' ? 'in' : 'low') + '">' + (o.channel === 'whatsapp' ? 'WhatsApp' : 'Form') + '</span></td>' +
         '<td>' + statusSelect(o) + '</td><td class="text-secondary">' + esc(A.date(o.createdAt)) + '</td>' +

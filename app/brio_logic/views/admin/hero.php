@@ -39,7 +39,7 @@ require __DIR__ . '/_shell_top.php';
           <span class="adm-slide-preview__cta" data-preview-cta hidden></span>
         </div>
         <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
-          <label class="btn adm-btn adm-btn--ghost adm-btn--sm mb-0" for="sf-image"><?= adm_icon('export', 14) ?> Upload image</label>
+          <label class="btn adm-btn adm-btn--ghost adm-btn--sm mb-0" for="sf-image"><?= adm_icon('upload', 14) ?> Upload image</label>
           <input id="sf-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" class="visually-hidden" data-image-input>
           <span class="small text-secondary" data-image-name></span>
         </div>

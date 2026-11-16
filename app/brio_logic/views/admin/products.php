@@ -128,7 +128,7 @@ require __DIR__ . '/_shell_top.php';
             <label class="form-label adm-label">Image</label>
             <label class="adm-upload" for="pf-image">
               <img data-image-preview alt="" hidden>
-              <span data-image-empty><?= adm_icon('export', 22) ?><br>Click to upload<br><small>JPG, PNG or WebP · max 4 MB</small></span>
+              <span data-image-empty><?= adm_icon('upload', 22) ?><br>Click to upload<br><small>JPG, PNG or WebP · max 4 MB</small></span>
             </label>
             <input id="pf-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" class="visually-hidden" data-image-input>
             <div class="invalid-feedback d-block" data-error-for="image"></div>

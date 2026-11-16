@@ -5,8 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<?= e($metaDescription ?? 'Brio — clean, leaf-fresh skin, hair and body care.') ?>">
   <meta name="theme-color" content="#8CC63F">
+  <script>
+    /* Visitor theme: light by default; a choice lasts for this browser session only and never changes the site for anyone else. */
+    try { if (sessionStorage.getItem('brio.theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.documentElement.setAttribute('data-bs-theme', 'dark'); } } catch (e) {}
+  </script>
   <title><?= e($title) ?></title>
+  <link rel="icon" href="<?= url('favicon.ico') ?>" sizes="48x48">
   <link rel="icon" href="<?= asset('img/favicon.svg') ?>" type="image/svg+xml">
+  <link rel="icon" href="<?= url('favicon-32.png') ?>" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="<?= url('apple-touch-icon.png') ?>">
+  <link rel="manifest" href="<?= url('site.webmanifest') ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">

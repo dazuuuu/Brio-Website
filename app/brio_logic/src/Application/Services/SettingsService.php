@@ -15,6 +15,7 @@ final class SettingsService
         'whatsapp_greeting' => 'Hello! I would like to place an order.',
         'show_search' => '1',
         'show_account_icon' => '1',
+        'admin_accent' => '#f25c1f',
     ];
 
     public function __construct(private readonly SettingsRepository $repo) {}
@@ -50,6 +51,11 @@ final class SettingsService
             $greeting = trim((string)$in['whatsapp_greeting']);
             if (mb_strlen($greeting) > 300) $e['whatsapp_greeting'][] = 'Keep the greeting under 300 characters.';
             $new['whatsapp_greeting'] = $greeting !== '' ? $greeting : self::DEFAULTS['whatsapp_greeting'];
+        }
+        if (array_key_exists('admin_accent', $in)) {
+            $hex = strtolower(trim((string)$in['admin_accent']));
+            if (!preg_match('/^#[0-9a-f]{6}$/', $hex)) $e['admin_accent'][] = 'Choose a valid colour.';
+            $new['admin_accent'] = $hex;
         }
         foreach (['show_search', 'show_account_icon'] as $flag) {
             if (array_key_exists($flag, $in)) $new[$flag] = filter_var($in[$flag], FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
