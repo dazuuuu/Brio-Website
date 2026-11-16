@@ -7,7 +7,7 @@ require __DIR__ . '/_head.php';
 ?>
 <body class="adm-auth-body">
 <main class="adm-auth">
-  <div class="adm-auth__brand"><span class="adm-logo"><?= adm_icon('bag', 20) ?></span><div><strong>Brio</strong><small>Admin setup</small></div></div>
+  <div class="adm-auth__brand"><img class="adm-auth__logo" src="<?= h(brio_asset(brand()['logo'])) ?>" alt="<?= h(brand()['name']) ?>"></div>
 
   <div class="adm-card adm-auth__card">
     <ol class="adm-steps" aria-label="Setup progress">
@@ -39,7 +39,7 @@ require __DIR__ . '/_head.php';
           <div class="col-sm-8"><?php $field(['name' => 'host', 'label' => 'Host', 'value' => $old['host'] ?? '127.0.0.1', 'placeholder' => '127.0.0.1', 'hint' => 'On most web hosts this is localhost.']); ?></div>
           <div class="col-sm-4"><?php $field(['name' => 'port', 'label' => 'Port', 'type' => 'number', 'value' => $old['port'] ?? '3306']); ?></div>
         </div>
-        <?php $field(['name' => 'database', 'label' => 'Database name', 'placeholder' => 'brio_store', 'required' => true, 'hint' => 'On shared hosting, create the database in your control panel first and enter its full name (it often starts with your account name).']); ?>
+        <?php $field(['name' => 'database', 'label' => 'Database name', 'placeholder' => 'asiva_store', 'required' => true, 'hint' => 'On shared hosting, create the database in your control panel first and enter its full name (it often starts with your account name).']); ?>
         <?php $field(['name' => 'username', 'label' => 'Database username', 'placeholder' => 'root', 'required' => true, 'autocomplete' => 'off']); ?>
         <?php $field(['name' => 'password', 'label' => 'Database password', 'type' => 'password', 'placeholder' => 'Leave empty if none', 'autocomplete' => 'new-password']); ?>
         <button type="submit" class="btn adm-btn adm-btn--primary w-100 mt-2" data-loading-text="Running migrations…">Run migrations &amp; continue</button>

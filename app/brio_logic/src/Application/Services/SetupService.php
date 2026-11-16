@@ -70,7 +70,7 @@ final class SetupService
     private function writeConfig(array $c): void
     {
         $config = ['host' => $c['host'], 'port' => $c['port'], 'database' => $c['db'], 'username' => $c['user'], 'password' => $c['pass']];
-        $php = "<?php\n// Written by the Brio setup wizard on " . date('Y-m-d H:i') . ". Keep this file private.\nreturn " . var_export($config, true) . ";\n";
+        $php = "<?php\n// Written by the store setup wizard on " . date('Y-m-d H:i') . ". Keep this file private.\nreturn " . var_export($config, true) . ";\n";
         $file = $this->configDir . '/database.php';
         if (file_put_contents($file, $php, LOCK_EX) === false) {
             throw new \RuntimeException('Could not write ' . $file . '. Make the config folder writable.');

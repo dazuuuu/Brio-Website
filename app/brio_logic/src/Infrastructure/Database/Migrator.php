@@ -13,10 +13,17 @@ final class Migrator
     public function __construct(private readonly string $dir, private readonly ?string $marker = null) {}
 
     /** Cheap on every request: runs only when new .sql files appeared since the last run. */
-    public function runIfPending(PDO $pdo): void
+    /** @return string[] migrations that ran now (empty when nothing was pending) */
+    public function runIfPending(PDO $pdo): array
     {
-        if ($this->marker !== null && is_file($this->marker) && trim((string)file_get_contents($this->marker)) === $this->signature()) return;
-        $this->run($pdo);
+        if ($this->marker !== null && is_file($this->marker) && trim((string)file_get_contents($this->marker)) === $this->signature() && $this->hasTables($pdo)) return [];
+        return $this->run($pdo);
+    }
+
+    /** A copied marker file must not make us skip a brand-new, empty database. */
+    private function hasTables(PDO $pdo): bool
+    {
+        return $pdo->query("SHOW TABLES LIKE 'migrations'")->fetchColumn() !== false;
     }
 
     private function signature(): string

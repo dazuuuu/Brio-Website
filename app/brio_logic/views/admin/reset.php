@@ -26,7 +26,7 @@ require __DIR__ . '/_shell_top.php';
               <li>Header and footer menus</li>
               <li>Settings, including your WhatsApp number</li>
             </ul>
-            <p class="small text-secondary mb-0">Revenue isn’t stored anywhere on its own. It’s worked out from each product’s price and units sold, so it returns to zero when the products are cleared. Order numbers start again at BRIO-5001.</p>
+            <p class="small text-secondary mb-0">Revenue isn’t stored anywhere on its own. It’s worked out from each product’s price and units sold, so it returns to zero when the products are cleared. Order numbers start again at ASIVA-5001.</p>
           </div>
         </div>
 

@@ -5,7 +5,7 @@ require __DIR__ . '/_head.php';
 ?>
 <body class="adm-auth-body">
 <main class="adm-auth">
-  <div class="adm-auth__brand"><span class="adm-logo"><?= adm_icon('bag', 20) ?></span><div><strong>Brio</strong><small>Sell smart, grow bigger.</small></div></div>
+  <div class="adm-auth__brand"><img class="adm-auth__logo" src="<?= h(brio_asset(brand()['logo'])) ?>" alt="<?= h(brand()['name']) ?>"></div>
   <div class="adm-card adm-auth__card">
     <h1 class="adm-auth__title">Welcome back</h1>
     <p class="adm-auth__sub">Sign in to manage your store.</p>

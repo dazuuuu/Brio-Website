@@ -1,5 +1,7 @@
 <?php
 // JSON API. Public catalogue endpoints + admin endpoints (session + CSRF protected).
+use Brio\Http\Controllers\Api\AdApiController;
+use Brio\Http\Controllers\Api\BrandApiController;
 use Brio\Http\Controllers\Api\CustomerApiController;
 use Brio\Http\Controllers\Api\HeroApiController;
 use Brio\Http\Controllers\Api\LookupApiController;
@@ -38,7 +40,9 @@ return static function (Router $router): void {
     $signedIn = [...$open, M::customer()];
     $router->post('api/customer/register', $cust('register'), $open);
     $router->post('api/customer/login', $cust('login'), $open);
+    $router->post('api/customer/google', $cust('google'), $open);
     $router->post('api/customer/logout', $cust('logout'), $open);
+    $router->post('api/customer/resend-verification', $cust('resendVerification'), $signedIn);
     $router->get('api/customer/me', $cust('me'), $signedIn);
     $router->patch('api/customer/me', $cust('update'), $signedIn);
     $router->post('api/customer/password', $cust('password'), $signedIn);
@@ -71,8 +75,26 @@ return static function (Router $router): void {
     $router->patch('api/admin/orders/{id}', $make(OrderApiController::class, 'update'), $admin);
     $router->delete('api/admin/orders/{id}', $make(OrderApiController::class, 'destroy'), $admin);
 
+    // Pop-up ads
+    $ad = static fn(string $m) => static fn(Request $r) => (new AdApiController())->$m($r);
+    $router->post('api/ads/event', $ad('event'), [M::installed(), M::sameOrigin(), M::jsonOnly()]);
+    $router->get('api/admin/ads', $ad('index'), $admin);
+    $router->post('api/admin/ads/reorder', $ad('reorder'), $admin);
+    $router->post('api/admin/ads', $ad('store'), $admin);
+    $router->post('api/admin/ads/{id}', $ad('update'), $admin);
+    $router->patch('api/admin/ads/{id}', $ad('update'), $admin);
+    $router->delete('api/admin/ads/{id}', $ad('destroy'), $admin);
+
+    // Brand: logos, site icon, share image
+    $brand = static fn(string $m, string $slot) => static fn(Request $r) => (new BrandApiController())->$m($r, $slot);
+    foreach (['logo', 'logo-dark', 'share-image', 'icon'] as $slot) {
+        $router->post("api/admin/brand/$slot", $brand('upload', $slot), $admin);
+        $router->delete("api/admin/brand/$slot", $brand('clear', $slot), $admin);
+    }
+
     $router->post('api/admin/reset', $make(ResetApiController::class, 'run'), $admin);
 
     $router->get('api/admin/settings', $make(SettingsApiController::class, 'show'), $admin);
     $router->post('api/admin/settings', $make(SettingsApiController::class, 'save'), $admin);
+    $router->post('api/admin/settings/test-email', $make(SettingsApiController::class, 'testEmail'), $admin);
 };

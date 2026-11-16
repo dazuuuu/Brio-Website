@@ -1,6 +1,6 @@
 <?php
 /**
- * Brio backend bootstrap.
+ * Store backend bootstrap.
  *
  * Layers (dependencies point inwards only):
  *   Domain          entities, rules, repository contracts   (no framework, no SQL)
@@ -83,9 +83,45 @@ function adm_icon(string $name, int $size = 18): string
         'chev-l' => 'chevron-left', 'chev-r' => 'chevron-right', 'chev-d' => 'chevron-down', 'coins' => 'coin', 'chart' => 'bar-chart-line',
         'cart' => 'cart3', 'menu' => 'list', 'image' => 'image', 'file' => 'file-earmark-text', 'list' => 'list-ul', 'cog' => 'gear',
         'trash' => 'trash3', 'up' => 'chevron-up', 'down' => 'chevron-down', 'edit' => 'pencil-square', 'eye' => 'eye', 'chat' => 'chat-dots',
-        'check' => 'check-lg', 'x' => 'x-lg',
+        'check' => 'check-lg', 'x' => 'x-lg', 'megaphone' => 'megaphone', 'video' => 'camera-video',
     ];
     return '<i class="bi bi-' . ($map[$name] ?? 'circle') . '" style="font-size:' . $size . 'px" aria-hidden="true"></i>';
+}
+
+/**
+ * The store's identity: name, tagline, logos, icon location, share-image mode, Google client id.
+ * Everything has a default, so pages render even before the database exists. Paths are relative to the web folder.
+ */
+function brand(): array
+{
+    static $b = null;
+    if ($b !== null) return $b;
+    $b = ['name' => 'Asiva Organics', 'tagline' => 'Natural skin & body care', 'logo' => 'assets/img/logo.png', 'logoDark' => 'assets/img/logo-dark.png',
+          'hasDarkLogo' => true, 'customLogo' => false, 'iconBase' => '', 'iconVersion' => '', 'ogLogo' => 'assets/img/og-default.png',
+          'shareMode' => 'popular', 'shareImagePath' => '', 'googleClientId' => ''];
+    try {
+        if (\Brio\Infrastructure\Config\Config::hasDatabase()) {
+            $s = brio('settings')->get();
+            $b['name'] = $s['store_name'] !== '' ? $s['store_name'] : $b['name'];
+            $b['tagline'] = $s['store_tagline'];
+            if ($s['logo'] !== '') {
+                $b['customLogo'] = true;
+                $b['logo'] = $s['logo'];
+                $b['logoDark'] = $s['logo_dark'];
+                $b['hasDarkLogo'] = $s['logo_dark'] !== '';
+                $b['ogLogo'] = is_file(BRIO_PUBLIC . '/uploads/brand/og-logo.png') ? 'uploads/brand/og-logo.png' : $s['logo'];
+            } elseif ($s['logo_dark'] !== '') {
+                $b['logoDark'] = $s['logo_dark'];
+            }
+            if ($s['site_icon'] !== '') { $b['iconBase'] = 'uploads/brand/icons/'; $b['iconVersion'] = $s['site_icon']; }
+            $b['shareMode'] = $s['share_image'];
+            $b['shareImagePath'] = $s['share_image_path'];
+            $b['googleClientId'] = $s['google_client_id'];
+        }
+    } catch (\Throwable) {
+        // keep the defaults
+    }
+    return $b;
 }
 
 /** Admin accent colour -> the CSS variables the admin stylesheet uses (tints, shades, readable text colour). */

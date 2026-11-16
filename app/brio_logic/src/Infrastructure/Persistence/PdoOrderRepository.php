@@ -25,7 +25,7 @@ final class PdoOrderRepository implements OrderRepository
             ->execute([$o->name, $o->phone, $o->whatsapp, $o->address, $o->notes, $o->channel,
                 json_encode($o->items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $o->total, $o->status, $o->ip, $o->createdAt, $o->customerId]);
         $o->id = (int)$this->pdo->lastInsertId();
-        $o->orderNumber = 'BRIO-' . (5000 + $o->id);
+        $o->orderNumber = \Brio\Domain\Order\Order::NUMBER_PREFIX . (5000 + $o->id);
         $this->pdo->prepare('UPDATE orders SET order_number = ? WHERE id = ?')->execute([$o->orderNumber, $o->id]);
         return $o;
     }

@@ -60,6 +60,21 @@ final class ProductService
         return $s;
     }
 
+    /** The best-selling in-stock product that has a photo (used for the share picture), or null. */
+    public function popular(): ?array
+    {
+        foreach ($this->repo->search([], ['sort' => 'sales', 'dir' => 'desc', 'limit' => 12]) as $p) {
+            if ($p->image !== '' && $p->stock > 0) return $p->toArray($this->lowThreshold);
+        }
+        return null;
+    }
+
+    /** @return string[] every product slug (for the sitemap) */
+    public function slugs(): array
+    {
+        return array_map(static fn(Product $p) => $p->slug, $this->repo->search([], ['sort' => 'created']));
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $p = $this->repo->findBySlug($slug);
@@ -69,7 +84,7 @@ final class ProductService
     /** For pickers: [{id, name, category}] */
     public function options(): array
     {
-        return array_map(static fn(Product $p) => ['id' => $p->id, 'name' => $p->name, 'category' => $p->category], $this->repo->search([], ['sort' => 'name']));
+        return array_map(static fn(Product $p) => ['id' => $p->id, 'name' => $p->name, 'category' => $p->category, 'image' => $p->image, 'price' => $p->price], $this->repo->search([], ['sort' => 'name']));
     }
 
     public function related(string $category, int $excludeId, int $limit = 4): array

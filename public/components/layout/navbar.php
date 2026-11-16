@@ -19,8 +19,10 @@ $customer = site_customer();
     </form>
     <?php endif; ?>
 
-    <a href="<?= url() ?>" class="brand site-nav__brand" aria-label="Brio home">
-      <?= icon('leaf', 30, 'brand__leaf') ?><span class="brand__name">Brio</span>
+    <?php $brand = brand(); ?>
+    <a href="<?= url() ?>" class="brand site-nav__brand" aria-label="<?= e($brand['name']) ?> home">
+      <img class="brand__logo brand__logo--light<?= $brand['hasDarkLogo'] ? '' : ' brand__logo--chip' ?>" src="<?= e(url($brand['logo'])) ?>" alt="<?= e($brand['name']) ?>">
+      <?php if ($brand['hasDarkLogo']): ?><img class="brand__logo brand__logo--dark" src="<?= e(url($brand['logoDark'])) ?>" alt="" aria-hidden="true"><?php endif; ?>
     </a>
 
     <div class="site-nav__actions tw-flex tw-items-center tw-gap-1">

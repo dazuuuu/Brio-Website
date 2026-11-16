@@ -1,5 +1,5 @@
 <?php
-// Storefront product access. Reads from the Brio backend (app/brio_logic) once setup has run;
+// Storefront product access. Reads from the store backend (app/brio_logic) once setup has run;
 // before that it falls back to the backend's seed file so the store still renders.
 
 use Brio\Domain\Product\Product;

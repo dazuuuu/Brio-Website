@@ -71,7 +71,7 @@ require __DIR__ . '/_shell_top.php';
           <div class="col-12" data-cta-fields>
             <label class="form-label adm-label">Button colour</label>
             <div class="adm-swatches" role="group" aria-label="Button colour">
-              <?php foreach ([['#1b2e24', 'Dark green'], ['#8cc63f', 'Leaf green'], ['#ffffff', 'White'], ['#c8664a', 'Clay'], ['#111111', 'Black']] as [$hex, $name]): ?>
+              <?php foreach ([['#1b2e24', 'Dark green'], ['#00be62', 'Brand green'], ['#ffffff', 'White'], ['#c8664a', 'Clay'], ['#111111', 'Black']] as [$hex, $name]): ?>
                 <button type="button" class="adm-swatch" data-swatch="<?= $hex ?>" style="--c:<?= $hex ?>" aria-label="<?= $name ?>" title="<?= $name ?>"></button>
               <?php endforeach; ?>
               <label class="adm-swatch adm-swatch--custom" title="Pick any colour"><input type="color" name="ctaColor" value="#1b2e24" data-color-input aria-label="Custom button colour"></label>

@@ -19,7 +19,7 @@ $val = static fn(string $k): string => e((string)($customer[$k] ?? ''));
     <div class="col-lg-7">
       <form class="checkout-card" data-checkout-form data-signed-in="<?= $customer ? '1' : '0' ?>" novalidate>
         <?php if ($direct): ?>
-          <h2 class="checkout-card__title">Ordering as <?= e($customer['firstName']) ?></h2>
+          <h2 class="checkout-card__title">Ordering as <?= e($customer['displayName']) ?></h2>
           <div class="checkout-who">
             <div><span>Name</span><b><?= e($customer['fullName']) ?></b></div>
             <div><span>Phone</span><b><?= e($customer['phone']) ?></b></div>
@@ -38,7 +38,7 @@ $val = static fn(string $k): string => e((string)($customer[$k] ?? ''));
           <?php if (!$customer): ?>
             <p class="checkout-account-note">Have an account? <a href="<?= url('login?redirect=' . rawurlencode('/checkout')) ?>">Sign in</a> or <a href="<?= url('register?redirect=' . rawurlencode('/checkout')) ?>">create one</a> and ordering becomes one click. No account needed, just fill in the form.</p>
           <?php else: ?>
-            <p class="checkout-account-note">Add your phone and WhatsApp to <a href="<?= url('account#details') ?>">your account</a> to order in one click next time.</p>
+            <p class="checkout-account-note">Fill this in once and we’ll save it to <a href="<?= url('account#details') ?>">your account</a>, so you won’t be asked again. You can change it any time.</p>
           <?php endif; ?>
           <div class="alert auth-alert" role="alert" data-checkout-error hidden></div>
           <div class="row g-3">

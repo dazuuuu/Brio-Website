@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Brio\Infrastructure\Config;
 
-/** Quick "will this host run Brio?" checklist shown on the setup page. */
+/** Quick "will this host run the store?" checklist shown on the setup page. */
 final class ServerCheck
 {
     public const MIN_PHP = '8.1.0';

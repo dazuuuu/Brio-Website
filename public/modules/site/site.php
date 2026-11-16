@@ -103,19 +103,46 @@ function site_whatsapp_enabled(): bool
     return (bool)site_try(fn() => brio('orders')->whatsappEnabled(), false);
 }
 
+/** True when the visitor is signed in to the admin (used for draft-page and ad previews). Only checks if they hold the admin cookie. */
+function site_is_admin(): bool
+{
+    static $is = null;
+    if ($is !== null) return $is;
+    $is = false;
+    if (isset($_COOKIE['brio_admin']) && site_db_ready()) {
+        $is = (bool)site_try(static function () {
+            \Brio\Http\Session::start('brio_admin');
+            $ok = brio('auth')->user() !== null;
+            session_write_close();
+            return $ok;
+        }, false);
+    }
+    return $is;
+}
+
 /** A CMS page by clean URL. Drafts are visible only to a signed-in admin using ?preview=1. */
 function site_page(string $path): ?array
 {
-    $drafts = false;
-    if (isset($_GET['preview'], $_COOKIE['brio_admin'])) {
-        $drafts = (bool)site_try(function () {
-            \Brio\Http\Session::start();
-            $isAdmin = brio('auth')->user() !== null;
-            session_write_close();
-            return $isAdmin;
-        }, false);
-    }
+    $drafts = isset($_GET['preview']) && site_is_admin();
     return site_try(fn() => brio('pages')->render($path, $drafts));
+}
+
+/** Pop-up ads for this page, with every path turned into a real URL for the browser. */
+function site_ads(string $route): array
+{
+    $ads = [];
+    if (isset($_GET['ad_preview']) && site_is_admin()) {
+        $preview = site_try(static fn() => brio('ads')->preview((int)$_GET['ad_preview']));
+        if ($preview) $ads = [$preview];
+    } else {
+        $ads = site_try(static fn() => brio('ads')->forStorefront($route), []);
+    }
+    return array_map(static function (array $ad): array {
+        if (!empty($ad['product'])) $ad['product']['image'] = $ad['product']['image'] !== '' ? url($ad['product']['image']) : '';
+        if (!empty($ad['media'])) $ad['media']['src'] = url($ad['media']['src']);
+        if (!empty($ad['cta'])) $ad['cta']['href'] = site_href($ad['cta']['href']);
+        return $ad;
+    }, $ads);
 }
 
 function site_product(string $slug): ?array

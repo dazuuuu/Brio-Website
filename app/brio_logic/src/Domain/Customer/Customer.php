@@ -19,9 +19,13 @@ final class Customer
         public string $whatsapp,
         public ?string $address,
         public ?string $createdAt = null,
+        public ?string $googleSub = null,
+        public bool $hasPassword = true,
+        public ?string $emailVerifiedAt = null,
+        public ?string $verifySentAt = null,
     ) {}
 
-    /** @throws ValidationException */
+    /** Sign-up needs only an email and a password; name and contact details are added later (profile or checkout). @throws ValidationException */
     public static function register(array $in): self
     {
         $e = [];
@@ -32,17 +36,24 @@ final class Customer
         if (strlen($password) < 8) $e['password'][] = 'Use at least 8 characters.';
         elseif (strlen($password) > 72) $e['password'][] = 'Use 72 characters or fewer.';
         if ($password !== (string)($in['confirm'] ?? '')) $e['confirm'][] = 'Passwords do not match.';
-        if (!filter_var($in['terms'] ?? false, FILTER_VALIDATE_BOOLEAN)) $e['terms'][] = 'Please accept the terms to create your account.';
-
-        try {
-            $d = self::details($in);
-        } catch (ValidationException $x) {
-            $e += $x->errors;
-            $d = null;
-        }
         if ($e) throw new ValidationException($e);
 
-        return new self(null, $d['firstName'], $d['lastName'], $email, password_hash($password, PASSWORD_DEFAULT), $d['phone'], $d['whatsapp'], $d['address']);
+        return new self(null, '', '', $email, password_hash($password, PASSWORD_DEFAULT), '', '', null);
+    }
+
+    public function isVerified(): bool { return $this->emailVerifiedAt !== null; }
+
+    /** What to call them: first name, or the part of the email before the @. */
+    public function displayName(): string
+    {
+        return $this->firstName !== '' ? $this->firstName : ucfirst((string)strstr($this->email, '@', true));
+    }
+
+    /** A customer created by "Continue with Google": no password to remember, contact details still to fill in. */
+    public static function fromGoogle(string $email, string $first, string $last, string $sub): self
+    {
+        $unguessable = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT); // nobody knows it; they sign in with Google
+        return new self(null, mb_substr($first, 0, 60), mb_substr($last, 0, 60), $email, $unguessable, '', '', null, null, $sub, false, date('Y-m-d H:i:s')); // Google has already verified the email
     }
 
     /** Update name and contact details (not the email or password). @throws ValidationException */
@@ -81,8 +92,8 @@ final class Customer
     /** Safe to send to the browser (never includes the password hash). */
     public function toArray(): array
     {
-        return ['id' => $this->id, 'firstName' => $this->firstName, 'lastName' => $this->lastName, 'fullName' => $this->fullName(), 'email' => $this->email,
+        return ['id' => $this->id, 'firstName' => $this->firstName, 'lastName' => $this->lastName, 'fullName' => $this->fullName(), 'displayName' => $this->displayName(), 'emailVerified' => $this->isVerified(), 'email' => $this->email,
                 'phone' => $this->phone, 'whatsapp' => $this->whatsapp, 'address' => $this->address, 'hasContactDetails' => $this->hasContactDetails(),
-                'createdAt' => $this->createdAt];
+                'createdAt' => $this->createdAt, 'hasPassword' => $this->hasPassword, 'viaGoogle' => $this->googleSub !== null];
     }
 }

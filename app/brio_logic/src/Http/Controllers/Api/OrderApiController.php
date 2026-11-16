@@ -12,7 +12,10 @@ final class OrderApiController
     public function place(Request $r): void
     {
         $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
-        Response::json(brio('orders')->place($r->input(), $ip, brio('customers')->current()), 201);
+        $customer = brio('customers')->current();
+        $order = brio('orders')->place($r->input(), $ip, $customer);
+        if ($customer !== null) brio('customers')->rememberFromOrder($customer, $r->input()); // saved once, never asked again
+        Response::json($order, 201);
     }
 
     // GET /api/admin/orders?status=&page=

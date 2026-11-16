@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 if (PHP_VERSION_ID < 80100) {
     http_response_code(500);
-    exit('Brio needs PHP 8.1 or newer. This server runs PHP ' . PHP_VERSION . '. Choose a newer PHP version in your hosting control panel.');
+    exit('This site needs PHP 8.1 or newer. This server runs PHP ' . PHP_VERSION . '. Choose a newer PHP version in your hosting control panel.');
 }
 
 // The "app" folder sits next to this web folder, whatever it is called (public, public_html …).
@@ -13,6 +13,7 @@ require dirname(__DIR__) . '/app/brio_logic/bootstrap.php';
 require __DIR__ . '/modules/core/helpers.php';
 require __DIR__ . '/modules/products/products.php';
 require __DIR__ . '/modules/site/site.php';
+require __DIR__ . '/modules/site/seo.php';
 
 // Let the PHP built-in server serve real static files.
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
@@ -29,42 +30,62 @@ if (\Brio\Http\Kernel::handles($path)) {
     return;
 }
 
-// route => [page file, title]
+// robots.txt, sitemap.xml and the web manifest are generated from the store's own data.
+if (in_array($path, ['robots.txt', 'sitemap.xml', 'site.webmanifest'], true)) {
+    seo_serve($path);
+    return;
+}
+
+// Built-in templates, used only before the database is set up.
 $routes = [
-    ''         => ['home',     'Brio — Fresh, leaf-powered care'],
-    'products' => ['products', 'Shop — Brio'],
-    'login'    => ['login',    'Sign in — Brio'],
-    'register' => ['register', 'Create an account — Brio'],
-    'account'  => ['account',  'My account — Brio'],
-    'checkout' => ['checkout', 'Checkout — Brio'],
+    ''         => ['home', 'Home'],
+    'products' => ['products', 'Shop'],
+    'login'    => ['login', 'Sign in'],
+    'register' => ['register', 'Create an account'],
+    'account'  => ['account', 'My account'],
+    'checkout' => ['checkout', 'Checkout'],
 ];
 
+$brandInfo = brand();
+$siteName = $brandInfo['name'];
+$homeTitle = $siteName . ($brandInfo['tagline'] !== '' ? ' — ' . $brandInfo['tagline'] : '');
 $route = $path;
-$metaDescription = null;
 $cms = null;
+$product = null;
+$noindexRoutes = ['checkout', 'account', 'login', 'register'];
 $dbReady = site_db_ready();
-if (preg_match('#^products/([a-z0-9-]+)$#', $path, $m) && ($product = site_product($m[1])) !== null) {
+if ($path === 'verify-email' && $dbReady) {
+    // The link in the confirmation email. Never cached or indexed; the token is single-use.
+    header('Cache-Control: no-store');
+    header('Referrer-Policy: no-referrer');
+    $page = 'verify-email';
+    $route = 'verify-email';
+    $seo = seo_context(['title' => 'Confirm your email | ' . $siteName, 'path' => $path, 'noindex' => true]);
+} elseif (preg_match('#^products/([a-z0-9-]+)$#', $path, $m) && ($product = site_product($m[1])) !== null) {
     // Clean product URL: /products/vitamin-c-e-serum
     $page = 'product';
     $route = 'products';
-    $title = $product['name'] . ' — Brio';
-    $metaDescription = mb_substr(trim($product['description']), 0, 160);
+    $seo = seo_context(['title' => $product['name'] . ' | ' . $siteName, 'description' => short_description($product['description'] ?? '', 160), 'path' => $path, 'product' => $product]);
 } elseif ($dbReady) {
     // Every other page, built-in or built by you, is a page in the page builder. A deleted page is a 404.
     if (($cms = site_page($path)) !== null) {
         $page = 'page';
-        $title = $cms['systemKey'] === 'home' ? 'Brio — Fresh, leaf-powered care' : $cms['title'] . ' — Brio';
-        $metaDescription = $cms['metaDescription'];
+        $title = $cms['systemKey'] === 'home' ? $homeTitle : $cms['title'] . ' | ' . $siteName;
+        $seo = seo_context(['title' => $title, 'description' => $cms['metaDescription'], 'path' => $path, 'noindex' => in_array($path, $noindexRoutes, true) || !$cms['isPublished']]);
     } else {
         http_response_code(404);
-        [$page, $title, $route] = ['404', 'Page not found — Brio', '404'];
+        [$page, $route] = ['404', '404'];
+        $seo = seo_context(['title' => 'Page not found | ' . $siteName, 'path' => $path, 'noindex' => true]);
     }
 } elseif (isset($routes[$path])) {
-    [$page, $title] = $routes[$path]; // before setup: built-in templates
+    [$page, $label] = $routes[$path]; // before setup: built-in templates
+    $seo = seo_context(['title' => $path === '' ? $homeTitle : $label . ' | ' . $siteName, 'path' => $path, 'noindex' => in_array($path, $noindexRoutes, true)]);
 } else {
     http_response_code(404);
-    [$page, $title, $route] = ['404', 'Page not found — Brio', '404'];
+    [$page, $route] = ['404', '404'];
+    $seo = seo_context(['title' => 'Page not found | ' . $siteName, 'path' => $path, 'noindex' => true]);
 }
+$title = $seo['title'];
 
 include __DIR__ . '/components/layout/header.php';
 include __DIR__ . '/pages/' . $page . '.php';

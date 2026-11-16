@@ -32,7 +32,7 @@ final class Kernel
         // A shopper without a cookie stays a guest: no session (and no cookie) until they sign in or register.
         if ($adminArea) {
             Session::start('brio_admin');
-        } elseif (isset($_COOKIE['brio_customer']) || preg_match('#^api/customer/(login|register)$#', $path)) {
+        } elseif (isset($_COOKIE['brio_customer']) || preg_match('#^api/customer/(login|register|google)$#', $path)) {
             Session::start('brio_customer');
         }
         $router = new Router();

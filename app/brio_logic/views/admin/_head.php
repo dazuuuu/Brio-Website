@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title><?= h($title) ?> · Brio Admin</title>
+  <title><?= h($title) ?> · <?= h(brand()['name']) ?> Admin</title>
   <link rel="icon" href="<?= brio_asset('favicon.ico') ?>" sizes="48x48">
   <link rel="icon" href="<?= brio_asset('assets/img/favicon.svg') ?>" type="image/svg+xml">
   <link rel="icon" href="<?= brio_asset('favicon-32.png') ?>" type="image/png" sizes="32x32">

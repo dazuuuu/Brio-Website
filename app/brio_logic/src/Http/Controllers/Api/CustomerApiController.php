@@ -10,13 +10,30 @@ use Brio\Http\Response;
 final class CustomerApiController
 {
     // POST /api/customer/register
-    public function register(Request $r): void { Response::json(brio('customers')->register($r->input())->toArray(), 201); }
+    public function register(Request $r): void
+    {
+        $svc = brio('customers');
+        $customer = $svc->register($r->input());
+        Response::json($customer->toArray() + ['mailSent' => $svc->mailSent], 201);
+    }
+
+    // POST /api/customer/resend-verification
+    public function resendVerification(Request $r): void
+    {
+        $svc = brio('customers');
+        $customer = $svc->current();
+        if ($customer->isVerified()) { Response::json(['alreadyVerified' => true, 'sent' => true]); return; }
+        Response::json(['alreadyVerified' => false, 'sent' => $svc->sendVerification($customer)]);
+    }
 
     // POST /api/customer/login  {email, password}
     public function login(Request $r): void
     {
         Response::json(brio('customers')->login((string)$r->get('email', ''), (string)$r->get('password', ''))->toArray());
     }
+
+    // POST /api/customer/google  {credential}  (the ID token from "Continue with Google")
+    public function google(Request $r): void { Response::json(brio('customers')->loginWithGoogle((string)$r->get('credential', ''))->toArray()); }
 
     // POST /api/customer/logout
     public function logout(Request $r): void

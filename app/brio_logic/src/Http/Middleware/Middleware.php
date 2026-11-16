@@ -16,7 +16,7 @@ final class Middleware
     {
         return static function (Request $r): bool {
             if (Config::hasDatabase() && self::safeHasAdmin()) return true;
-            $r->wantsJson() ? Response::error('Brio is not set up yet.', 503) : Response::redirect(setup_url());
+            $r->wantsJson() ? Response::error('The store is not set up yet.', 503) : Response::redirect(setup_url());
             return false;
         };
     }

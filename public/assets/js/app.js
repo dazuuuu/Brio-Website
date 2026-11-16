@@ -152,9 +152,38 @@
     $all('[data-error-for]', form).forEach(function (el) { el.textContent = ''; });
     $all('.is-invalid', form).forEach(function (el) { el.classList.remove('is-invalid'); });
   }
-  function afterSignIn() {
+  function afterSignIn(customer) {
     var r = safeRedirect(new URLSearchParams(location.search).get('redirect'));
-    location.replace(r ? BASE + r : url('account'));
+    if (r) location.replace(BASE + r);
+    else if (customer && customer.hasContactDetails === false) location.replace(url('account') + '#details'); // e.g. a new Google user
+    else location.replace(url('account'));
+  }
+
+  // "Continue with Google": loaded only when the store has a Google Client ID
+  var googleBox = $('[data-google-signin]');
+  if (googleBox) {
+    var gNote = $('[data-google-note]', googleBox);
+    var gSay = function (msg) { gNote.textContent = msg; gNote.hidden = false; };
+    var gScript = document.createElement('script');
+    gScript.src = 'https://accounts.google.com/gsi/client';
+    gScript.async = true;
+    gScript.onerror = function () { gSay('Google sign-in is unavailable right now. You can use your email instead.'); };
+    gScript.onload = function () {
+      try {
+        google.accounts.id.initialize({
+          client_id: googleBox.dataset.clientId,
+          callback: function (resp) {
+            authError(null);
+            customerApi('google', 'POST', { credential: resp.credential }).then(afterSignIn).catch(function (err) { authError(err.message); });
+          }
+        });
+        google.accounts.id.renderButton($('[data-google-button]', googleBox), {
+          type: 'standard', theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'filled_black' : 'outline',
+          size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(220, Math.min(360, googleBox.clientWidth || 320))
+        });
+      } catch (e) { gSay('Google sign-in is unavailable right now. You can use your email instead.'); }
+    };
+    document.head.appendChild(gScript);
   }
 
   var loginForm = $('[data-login-form]');
@@ -181,15 +210,28 @@
       var btn = $('[type=submit]', regForm);
       setLoading(btn, true);
       customerApi('register', 'POST', {
-        firstName: f.firstName.value, lastName: f.lastName.value, email: f.email.value, phone: f.phone.value, whatsapp: f.whatsapp.value,
-        address: f.address.value, password: f.password.value, confirm: f.confirm.value, terms: f.terms.checked
-      }).then(afterSignIn).catch(function (err) {
+        email: f.email.value, password: f.password.value, confirm: f.confirm.value
+      }).then(function (customer) {
+        var r = safeRedirect(new URLSearchParams(location.search).get('redirect'));
+        location.replace(r ? BASE + r : url('account') + '?verify=sent'); // the account page shows the "check your email" notice
+      }).catch(function (err) {
         authError(err.message);
         showFieldErrors(regForm, err);
         setLoading(btn, false);
       });
     });
   }
+
+  // "Resend email" on the account page
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-resend-verify]');
+    if (!btn) return;
+    var msg = $('[data-verify-msg]');
+    setLoading(btn, true);
+    customerApi('resend-verification', 'POST').then(function (r) {
+      msg.textContent = r.alreadyVerified ? ' Your email is already confirmed.' : (r.sent ? ' Sent! Check your inbox.' : ' We couldn’t send the email right now. Please try again later.');
+    }).catch(function (err) { msg.textContent = ' ' + err.message; }).then(function () { setLoading(btn, false); });
+  });
 
   // Sign out (login/register "you're signed in" cards and the account page)
   document.addEventListener('click', function (e) {
@@ -202,18 +244,32 @@
   // Account page: contact details, password, order history
   var accountEl = $('[data-account]');
   if (accountEl) {
-    var STATUS = { 'new': ['Received', 'processing'], contacted: ['Being processed', 'processing'], completed: ['Completed', 'completed'], cancelled: ['Cancelled', 'cancelled'] };
-    var ordersBody = $('[data-orders-body]', accountEl);
+    var STEPS = ['Received', 'Being processed', 'Completed'];
+    var STEP_OF = { 'new': 0, contacted: 1, completed: 2 };
+    var BADGE = { 'new': 'processing', contacted: 'processing', completed: 'completed', cancelled: 'cancelled' };
+    var ordersBox = $('[data-orders]', accountEl);
 
-    if (ordersBody) {
+    function tracker(status) {
+      if (status === 'cancelled') return '<p class="track-cancelled">This order was cancelled. Contact us if that’s a mistake.</p>';
+      var cur = STEP_OF[status] != null ? STEP_OF[status] : 0;
+      return '<ol class="track" aria-label="Order progress">' + STEPS.map(function (label, i) {
+        var cls = (i < cur || status === 'completed') ? 'is-done' : (i === cur ? 'is-current' : '');
+        return '<li class="' + cls + '"' + (i === cur ? ' aria-current="step"' : '') + '><span class="track__dot" aria-hidden="true"></span><span class="track__label">' + label + '</span></li>';
+      }).join('') + '</ol>';
+    }
+
+    if (ordersBox) {
       customerApi('orders').then(function (orders) {
-        ordersBody.innerHTML = orders.length ? orders.map(function (o) {
-          var st = STATUS[o.status] || [o.status, 'processing'];
-          return '<tr><th scope="row">' + esc(o.orderNumber) + '</th><td>' + esc(formatDate(o.createdAt.replace(' ', 'T'))) + '</td><td><ul class="orders-table__items">' +
-            o.items.map(function (i) { return '<li>' + (+i.quantity) + ' × ' + esc(i.name) + '</li>'; }).join('') + '</ul></td><td class="text-end">' + money(o.total) +
-            '</td><td><span class="status status--' + st[1] + '">' + esc(st[0]) + '</span></td></tr>';
-        }).join('') : '<tr><td colspan="5" class="text-center text-secondary py-4">No orders yet. <a href="' + url('products') + '">Start shopping</a></td></tr>';
-      }).catch(function () { ordersBody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-4">We couldn’t load your orders. Please refresh.</td></tr>'; });
+        ordersBox.innerHTML = orders.length ? orders.map(function (o) {
+          var label = o.status === 'cancelled' ? 'Cancelled' : (STEPS[STEP_OF[o.status]] || 'Received');
+          return '<article class="order-card"><header class="order-card__head"><div><strong>' + esc(o.orderNumber) + '</strong><small>' + esc(formatDate(o.createdAt.replace(' ', 'T'))) + '</small></div>' +
+            '<div class="text-end"><strong>' + money(o.total) + '</strong><br><span class="status status--' + (BADGE[o.status] || 'processing') + '">' + esc(label) + '</span></div></header>' +
+            tracker(o.status) +
+            '<ul class="order-items">' + o.items.map(function (i) {
+              return '<li>' + (i.image ? '<img src="' + esc(url(i.image)) + '" alt="" loading="lazy">' : '<span class="order-items__ph"></span>') + '<span>' + (+i.quantity) + ' × ' + esc(i.name) + '</span><b>' + money(i.price * i.quantity) + '</b></li>';
+            }).join('') + '</ul></article>';
+        }).join('') : '<div class="panel-brio text-center"><p class="mb-2"><b>No orders yet.</b></p><a class="btn btn-brio btn-brio--primary btn-brio--sm" href="' + url('products') + '">Start shopping</a></div>';
+      }).catch(function () { ordersBox.innerHTML = '<div class="panel-brio text-center text-secondary">We couldn’t load your orders. Please refresh the page.</div>'; });
     }
 
     function bindAccountForm(form, run, okText) {
@@ -305,7 +361,7 @@
         b.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
         b.title = dark ? 'Light theme' : 'Dark theme';
       });
-      if (meta) meta.setAttribute('content', dark ? '#0e1712' : '#8CC63F');
+      if (meta) meta.setAttribute('content', dark ? '#0e1712' : '#00BE62');
     }
     document.addEventListener('click', function (e) {
       if (!e.target.closest('[data-theme-toggle]')) return;
@@ -316,6 +372,107 @@
       paint();
     });
     paint();
+  })();
+
+  /* ------------------------------------------------------------------
+     Pop-up ads: full-screen, closes with one tap, never on checkout/login/account
+     ------------------------------------------------------------------ */
+  (function () {
+    var holder = $('[data-ads]');
+    if (!holder) return;
+    var ads;
+    try { ads = JSON.parse(holder.dataset.ads); } catch (e) { return; }
+    var now = Date.now();
+
+    function key(ad) { return 'brio.ad.' + ad.id; }
+    function seen(ad) {
+      if (ad.force || ad.frequency === 'always') return false;
+      try {
+        if (ad.frequency === 'session') return sessionStorage.getItem(key(ad)) === '1';
+        return now - (+localStorage.getItem(key(ad)) || 0) < 864e5; // once a day
+      } catch (e) { return false; }
+    }
+    function remember(ad) {
+      try { if (ad.frequency === 'session') sessionStorage.setItem(key(ad), '1'); else if (ad.frequency === 'day') localStorage.setItem(key(ad), String(now)); } catch (e) { /* storage blocked */ }
+    }
+    function track(ad, type) {
+      if (ad.force) return; // previews from the admin aren't counted
+      try { fetch(BASE + '/api/ads/event', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: ad.id, type: type }) }); } catch (e) { /* ignore */ }
+    }
+
+    var ad = ads.filter(function (a) { return !seen(a); })[0];
+    if (!ad) return;
+
+    function markup(ad) {
+      var p = ad.product, m = ad.media;
+      var layout = p ? 'split' : (m && (ad.headline || ad.body) ? 'split' : (m ? 'media' : 'text'));
+      var pct = p && p.compareAt && p.compareAt > p.price ? Math.round((1 - p.price / p.compareAt) * 100) : 0;
+      var badge = ad.offerText || (pct > 0 ? '-' + pct + '%' : '');
+      var title = ad.headline || (p ? p.name : '');
+      var media = '';
+      if (p && p.image) media = '<img src="' + esc(p.image) + '" alt="' + esc(p.name) + '">';
+      else if (m && m.type === 'video') media = '<video src="' + esc(m.src) + '" autoplay muted loop playsinline controls></video>';
+      else if (m) media = '<img src="' + esc(m.src) + '" alt="' + esc(title) + '">';
+      var cta = ad.cta ? '<a class="ad-cta" href="' + esc(ad.cta.href) + '" data-ad-cta>' + esc(ad.cta.label) + '</a>' : '';
+      var close = '<button type="button" class="ad-close" data-ad-close aria-label="Close ad"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+
+      var body = '<div class="ad-body">' +
+        (p ? '<p class="ad-eyebrow">Special offer</p>' : '') +
+        (title ? '<h2 class="ad-title" id="ad-title">' + esc(title) + '</h2>' : '') +
+        (p && ad.headline ? '<p class="ad-text">' + esc(p.name) + '</p>' : '') +
+        (ad.body ? '<p class="ad-text">' + esc(ad.body) + '</p>' : '') +
+        (p ? '<div class="ad-price"><strong>' + money(p.price) + '</strong>' + (p.compareAt ? '<s>' + money(p.compareAt) + '</s>' : '') + '</div>' : '') +
+        cta + '<button type="button" class="ad-skip" data-ad-close>No thanks</button></div>';
+
+      if (layout === 'media') {
+        return '<div class="ad-card ad-card--media">' + close + '<div class="ad-media">' + media + '</div>' + (cta ? '<div class="ad-cta-wrap">' + cta + '</div>' : '') + '</div>';
+      }
+      if (layout === 'text') return '<div class="ad-card ad-card--text">' + close + body + '</div>';
+      return '<div class="ad-card ad-card--split">' + close + '<div class="ad-media">' + (badge ? '<span class="ad-badge">' + esc(badge) + '</span>' : '') + media + '</div>' + body + '</div>';
+    }
+
+    function open() {
+      var before = document.activeElement;
+      var overlay = document.createElement('div');
+      overlay.className = 'ad-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', ad.headline || (ad.product ? ad.product.name : 'Announcement'));
+      overlay.innerHTML = markup(ad);
+      document.body.appendChild(overlay);
+      document.documentElement.classList.add('ad-lock');
+      requestAnimationFrame(function () { overlay.classList.add('is-open'); var c = $('[data-ad-close]', overlay); if (c) c.focus(); });
+      remember(ad);
+      track(ad, 'view');
+
+      function close() {
+        document.removeEventListener('keydown', onKey);
+        overlay.classList.remove('is-open');
+        document.documentElement.classList.remove('ad-lock');
+        var v = $('video', overlay); if (v) v.pause();
+        setTimeout(function () { overlay.remove(); }, 260);
+        if (before && before.focus) try { before.focus(); } catch (e) { /* element gone */ }
+      }
+      function onKey(e) {
+        if (e.key === 'Escape') { close(); return; }
+        if (e.key !== 'Tab') return;
+        var f = $all('[data-ad-close], [data-ad-cta], video[controls]', overlay).filter(function (x) { return x.offsetParent !== null; });
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+      document.addEventListener('keydown', onKey);
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay || e.target.closest('[data-ad-close]')) { close(); return; }
+        if (e.target.closest('[data-ad-cta]')) track(ad, 'click');
+      });
+    }
+
+    // Wait for the picture so the ad never pops up half-empty.
+    var first = ad.product ? ad.product.image : (ad.media && ad.media.type === 'image' ? ad.media.src : '');
+    var go = function () { setTimeout(open, Math.max(0, (ad.delay || 0) * 1000)); };
+    if (first) { var img = new Image(); var done = false; var fire = function () { if (!done) { done = true; go(); } }; img.onload = fire; img.onerror = fire; img.src = first; setTimeout(fire, 2500); } else { go(); }
   })();
 
   /* ------------------------------------------------------------------

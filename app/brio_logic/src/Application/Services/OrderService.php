@@ -36,7 +36,7 @@ final class OrderService
     {
         // Honeypot: real people never fill the hidden "website" field. Pretend success, save nothing.
         if (trim((string)($input['website'] ?? '')) !== '') {
-            return ['orderNumber' => 'BRIO-0000', 'total' => 0, 'channel' => 'form', 'whatsappUrl' => null];
+            return ['orderNumber' => Order::NUMBER_PREFIX . '0000', 'total' => 0, 'channel' => 'form', 'whatsappUrl' => null];
         }
         if ($this->orders->countRecent($ip, self::WINDOW_SECONDS) >= self::MAX_PER_WINDOW) {
             throw new RateLimitException('Too many orders from your connection. Please wait a few minutes or contact us on WhatsApp.');

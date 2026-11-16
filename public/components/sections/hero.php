@@ -45,11 +45,11 @@ $multi = count($slides) > 1;
     <div id="hero-carousel" class="carousel slide carousel-fade hero-banner" data-bs-ride="carousel" data-bs-interval="6000">
       <!-- Subtle botanical line-art watermarks -->
       <svg class="hero-banner__watermark hero-banner__watermark--tl" viewBox="0 0 160 160" fill="none" aria-hidden="true">
-        <path d="M10 150C20 90 60 40 150 10M10 150C50 140 100 110 150 50M10 150C80 120 130 90 150 10" stroke="#8CC63F" stroke-width="1.5" stroke-opacity="0.22"/>
-        <circle cx="90" cy="50" r="3" fill="#8CC63F" fill-opacity="0.25"/><circle cx="120" cy="30" r="2" fill="#8CC63F" fill-opacity="0.25"/>
+        <path d="M10 150C20 90 60 40 150 10M10 150C50 140 100 110 150 50M10 150C80 120 130 90 150 10" stroke="#00BE62" stroke-width="1.5" stroke-opacity="0.22"/>
+        <circle cx="90" cy="50" r="3" fill="#00BE62" fill-opacity="0.25"/><circle cx="120" cy="30" r="2" fill="#00BE62" fill-opacity="0.25"/>
       </svg>
       <svg class="hero-banner__watermark hero-banner__watermark--br" viewBox="0 0 160 160" fill="none" aria-hidden="true">
-        <path d="M150 10C140 70 100 120 10 150M150 10C110 20 60 50 10 110M150 10C80 40 30 70 10 150" stroke="#8CC63F" stroke-width="1.5" stroke-opacity="0.22"/>
+        <path d="M150 10C140 70 100 120 10 150M150 10C110 20 60 50 10 110M150 10C80 40 30 70 10 150" stroke="#00BE62" stroke-width="1.5" stroke-opacity="0.22"/>
       </svg>
 
       <div class="carousel-inner">

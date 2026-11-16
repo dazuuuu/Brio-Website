@@ -4,7 +4,7 @@
 $soldOut = $product['stock'] <= 0;
 $related = site_related($product);
 ?>
-<div class="container page">
+<div class="container page pdp">
   <nav class="crumbs" aria-label="Breadcrumb">
     <a href="<?= url() ?>">Home</a> / <a href="<?= url('products') ?>">Shop</a> /
     <a href="<?= e(url('products?category=' . $product['category'])) ?>"><?= e($product['categoryLabel']) ?></a> / <span aria-current="page"><?= e($product['name']) ?></span>
@@ -34,4 +34,9 @@ $related = site_related($product);
       <?php component('ui/product-grid', ['products' => $related]); ?>
     </section>
   <?php endif; ?>
+
+  <div class="pdp__bar" role="region" aria-label="Buy this product">
+    <div class="pdp__bar-price"><strong><?= money($product['price']) ?></strong><?php if ($product['compareAtPrice']): ?><s><?= money($product['compareAtPrice']) ?></s><?php endif; ?></div>
+    <button type="button" class="btn btn-brio btn-brio--primary" data-add-to-cart="<?= product_json($product) ?>" <?= $soldOut ? 'disabled' : '' ?>><?= $soldOut ? 'Sold out' : 'Add to Cart' ?></button>
+  </div>
 </div>

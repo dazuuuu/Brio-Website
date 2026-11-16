@@ -11,6 +11,8 @@ final class Order
 {
     public const STATUSES = ['new', 'contacted', 'completed', 'cancelled'];
     public const CHANNELS = ['form', 'whatsapp'];
+    /** Customer-facing order numbers look like ASIVA-5001. Orders placed before the rename keep their old numbers. */
+    public const NUMBER_PREFIX = 'ASIVA-';
 
     /** @param array<int,array{productId:int,name:string,price:float,quantity:int,image?:string,description?:string}> $items */
     public function __construct(

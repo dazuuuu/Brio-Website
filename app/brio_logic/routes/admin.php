@@ -32,6 +32,7 @@ return static function (Router $router): void {
     $router->get('admin/featured', $dash->featured(...), $guard);
 
     $router->get('admin/hero', $manage->hero(...), $guard);
+    $router->get('admin/ads', $manage->ads(...), $guard);
     $router->get('admin/pages', $manage->pages(...), $guard);
     $router->get('admin/pages/new', $manage->pageNew(...), $guard);
     $router->get('admin/pages/{id}', $manage->pageEdit(...), $guard);

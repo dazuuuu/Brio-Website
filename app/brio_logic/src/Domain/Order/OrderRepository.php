@@ -25,7 +25,7 @@ interface OrderRepository
 
     public function delete(int $id): void;
 
-    /** Removes every order and restarts numbering at BRIO-5001. @return int how many were removed */
+    /** Removes every order and restarts numbering at ASIVA-5001. @return int how many were removed */
     public function deleteAll(): int;
 
     /** Orders from one IP in the last $seconds (spam guard). */

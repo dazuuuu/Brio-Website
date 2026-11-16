@@ -19,18 +19,37 @@ final class SystemPagesService
 
     public function __construct(private readonly PageRepository $pages, private readonly SettingsRepository $settings, private readonly ?string $marker = null) {}
 
-    /** First run only: add the built-in pages. Later deletions are respected (never re-added automatically). */
+    private const KEYS_SETTING = 'system_pages_keys';
+    /** The six pages created before per-page tracking existed. */
+    private const LEGACY_KEYS = ['home', 'shop', 'checkout', 'login', 'register', 'account'];
+
+    /**
+     * Creates each built-in page once. A page the admin deletes is never re-added by itself, and pages added in later
+     * versions (like About us) are created on existing stores the first time they load.
+     */
     public function seedOnce(): void
     {
-        if ($this->marker !== null && is_file($this->marker)) return;
-        if (!isset($this->settings->all()[self::FLAG])) {
-            foreach (array_keys(SystemPages::defaults()) as $key) {
-                if ($this->pages->findBySystemKey($key) === null) $this->create($key);
+        $signature = md5(implode(',', array_keys(SystemPages::defaults())));
+        if ($this->marker !== null && is_file($this->marker) && trim((string)file_get_contents($this->marker)) === $signature) return;
+
+        $stored = $this->settings->all();
+        $done = json_decode($stored[self::KEYS_SETTING] ?? '[]', true);
+        $done = is_array($done) ? $done : [];
+        if (!$done && isset($stored[self::FLAG])) $done = self::LEGACY_KEYS;
+
+        $created = [];
+        foreach (SystemPages::defaults() as $key => $def) {
+            if (in_array($key, $done, true)) continue;
+            // Skip (but remember) when the owner already has a page with that address.
+            if ($this->pages->findBySystemKey($key) === null && $this->pages->findBySlug($def['slug']) === null) {
+                $this->create($key);
+                $created[] = $key;
             }
-            $this->settings->set([self::FLAG => '1']);
-            Logger::info('Built-in pages created');
+            $done[] = $key;
         }
-        if ($this->marker !== null) @file_put_contents($this->marker, '1', LOCK_EX);
+        $this->settings->set([self::FLAG => '1', self::KEYS_SETTING => json_encode(array_values(array_unique($done)))]);
+        if ($created) Logger::info('Built-in pages created', ['pages' => $created]);
+        if ($this->marker !== null) @file_put_contents($this->marker, $signature, LOCK_EX);
     }
 
     /** Built-in pages the admin has deleted. @return array<int,array{key:string,title:string,description:string,path:string}> */

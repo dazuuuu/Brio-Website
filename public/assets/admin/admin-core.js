@@ -10,6 +10,7 @@
   A.$all = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   A.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) { return '&#' + m.charCodeAt(0) + ';'; }); };
   A.url = function (path) { return A.base + '/' + String(path || '').replace(/^\//, ''); };
+  A.number = function (n) { return Number(n || 0).toLocaleString('en-KE'); };
   A.money = function (n) { return 'KSh ' + Number(n || 0).toLocaleString('en-KE', { maximumFractionDigits: 2 }); };
   A.debounce = function (fn, ms) { var t; return function () { var a = arguments, c = this; clearTimeout(t); t = setTimeout(function () { fn.apply(c, a); }, ms || 300); }; };
   A.date = function (s) { var d = new Date(String(s).replace(' ', 'T')); return isNaN(d) ? s : d.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }); };

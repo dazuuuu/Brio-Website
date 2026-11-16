@@ -6,7 +6,7 @@
 $showSearch ??= false;
 $groups = [
     ['Catalog', [['products', 'Product', 'box'], ['offers', 'Daily Deals', 'tag'], ['featured', 'Featured', 'star']]],
-    ['Storefront', [['hero', 'Hero Slides', 'image'], ['pages', 'Pages', 'file'], ['navigation', 'Navigation', 'list']]],
+    ['Storefront', [['hero', 'Hero Slides', 'image'], ['ads', 'Pop-up Ads', 'megaphone'], ['pages', 'Pages', 'file'], ['navigation', 'Navigation', 'list']]],
     ['Sales', [['orders', 'Orders', 'cart']]],
     ['Tools', [['settings', 'Settings', 'cog'], ['reset', 'Reset store', 'trash']]],
 ];
@@ -17,9 +17,9 @@ require __DIR__ . '/_head.php';
 <div class="adm-shell">
   <aside class="adm-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="adm-sidebar" aria-label="Admin navigation">
     <div class="adm-sidebar__inner">
-      <a class="adm-brand" href="<?= admin_url('products') ?>">
-        <span class="adm-logo"><?= adm_icon('bag', 20) ?></span>
-        <span><strong>Brio</strong><small>Sell Smart, Grow Bigger.</small></span>
+      <a class="adm-brand" href="<?= admin_url('products') ?>" title="<?= h(brand()['name']) ?>">
+        <img class="adm-brand__logo" src="<?= h(brio_asset(brand()['logo'])) ?>" alt="<?= h(brand()['name']) ?>">
+        <small>Admin</small>
       </a>
 
       <label class="adm-menu-search">

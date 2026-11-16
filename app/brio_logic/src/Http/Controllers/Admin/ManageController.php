@@ -11,6 +11,7 @@ use Brio\Http\Session;
 final class ManageController
 {
     public function hero(Request $r): void { $this->render('hero'); }
+    public function ads(Request $r): void { $this->render('ads'); }
     public function pages(Request $r): void { $this->render('pages'); }
     public function navigation(Request $r): void { $this->render('navigation'); }
     public function orders(Request $r): void { $this->render('orders'); }
