@@ -179,7 +179,7 @@
         });
         google.accounts.id.renderButton($('[data-google-button]', googleBox), {
           type: 'standard', theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'filled_black' : 'outline',
-          size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(220, Math.min(360, googleBox.clientWidth || 320))
+          size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(200, Math.min(300, googleBox.clientWidth || 220))
         });
       } catch (e) { gSay('Google sign-in is unavailable right now. You can use your email instead.'); }
     };

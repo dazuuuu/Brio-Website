@@ -11,6 +11,7 @@ use Brio\Http\Controllers\Api\PageApiController;
 use Brio\Http\Controllers\Api\ProductApiController;
 use Brio\Http\Controllers\Api\ResetApiController;
 use Brio\Http\Controllers\Api\SettingsApiController;
+use Brio\Http\Controllers\Api\TransferApiController;
 use Brio\Http\Middleware\Middleware as M;
 use Brio\Http\Request;
 use Brio\Http\Router;
@@ -96,5 +97,7 @@ return static function (Router $router): void {
 
     $router->get('api/admin/settings', $make(SettingsApiController::class, 'show'), $admin);
     $router->post('api/admin/settings', $make(SettingsApiController::class, 'save'), $admin);
+    $router->get('api/admin/transfer/export', $make(TransferApiController::class, 'export'), $admin);
+    $router->post('api/admin/transfer/import', $make(TransferApiController::class, 'import'), $admin);
     $router->post('api/admin/settings/test-email', $make(SettingsApiController::class, 'testEmail'), $admin);
 };

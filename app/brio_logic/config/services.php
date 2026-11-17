@@ -13,6 +13,7 @@ use Brio\Application\Services\PageService;
 use Brio\Application\Services\ResetService;
 use Brio\Application\Services\SettingsService;
 use Brio\Application\Services\SystemPagesService;
+use Brio\Application\Services\TransferService;
 use Brio\Application\Services\ProductService;
 use Brio\Application\Services\SetupService;
 use Brio\Infrastructure\Config\Config;
@@ -56,6 +57,7 @@ return [
         return ['host' => $s['smtp_host'], 'port' => $s['smtp_port'], 'secure' => $s['smtp_secure'], 'user' => $s['smtp_user'], 'pass' => $s['smtp_pass'], 'from' => $s['mail_from'], 'fromName' => $s['store_name']];
     }, (string)(parse_url(brio_public_url(), PHP_URL_HOST) ?: 'localhost')),
     'brand'    => fn() => new BrandService(brio('settings'), brio('files'), new IconGenerator(), BRIO_PUBLIC),
+    'transfer' => fn() => new TransferService(brio('db'), BRIO_PUBLIC),
     'ads'      => fn() => new AdService(new PdoAdRepository(brio('db')), new PdoProductRepository(brio('db')), brio('links'), brio('files')),
     'settings' => fn() => new SettingsService(new PdoSettingsRepository(brio('db'))),
     'orders'   => fn() => new OrderService(new PdoOrderRepository(brio('db')), new PdoProductRepository(brio('db')), brio('settings'), brio_public_url()),

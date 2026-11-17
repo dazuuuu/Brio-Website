@@ -147,6 +147,20 @@ require __DIR__ . '/_shell_top.php';
         </div>
         <div class="small mt-2" data-test-result role="status"></div>
       </form>
+
+      <section class="adm-card p-4 adm-settings mt-3" data-transfer>
+        <h2 class="adm-section-title">Move content between sites</h2>
+        <p class="small text-secondary">Built your products, pages, menus, ads and settings on your test site? <b>Export</b> them here as one file, then open this page on your live site and <b>Import</b> it. Pictures and videos you uploaded come along. Orders, customers, admin accounts, your mail settings and your Google ID stay as they are on each site.</p>
+        <div class="d-flex flex-wrap gap-2 mb-3"><button type="button" class="btn adm-btn adm-btn--primary" data-export>Download export file</button></div>
+        <hr class="my-3">
+        <label class="form-label adm-label" for="st-import">Import a file (replaces this site’s products, hero slides, pages, menus, ads and settings)</label>
+        <div class="alert adm-alert adm-alert--error" data-transfer-error hidden></div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <input id="st-import" type="file" accept=".zip,application/zip" class="form-control adm-input" style="max-width:340px" data-import-file>
+          <button type="button" class="btn adm-btn adm-btn--ghost" data-import>Import</button>
+        </div>
+        <div class="small mt-2" data-transfer-result role="status"></div>
+      </section>
     </main>
 <?php require __DIR__ . '/_shell_bottom.php'; ?>
 <?php $scripts = ['settings.js', 'brand.js']; require __DIR__ . '/_foot.php'; ?>

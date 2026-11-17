@@ -126,5 +126,44 @@
       .then(function () { A.busy(btn, false); });
   });
 
+  /* Move content between sites */
+  var tbox = $('[data-transfer]');
+  $('[data-export]', tbox).addEventListener('click', function () {
+    var btn = this;
+    A.busy(btn, true, 'Preparing…');
+    fetch(A.apiBase + '/transfer/export', { headers: { 'X-CSRF-Token': A.csrf }, credentials: 'same-origin' })
+      .then(function (res) { if (!res.ok) throw new Error('Could not create the export.'); return res.blob(); })
+      .then(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'store-content-' + new Date().toISOString().slice(0, 10) + '.zip';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        A.toast('Export downloaded.');
+      })
+      .catch(function (err) { A.toast(err.message, true); })
+      .then(function () { A.busy(btn, false); });
+  });
+  $('[data-import]', tbox).addEventListener('click', function () {
+    var btn = this, file = $('[data-import-file]', tbox).files[0], err = $('[data-transfer-error]', tbox), out = $('[data-transfer-result]', tbox);
+    err.hidden = true; out.textContent = '';
+    if (!file) { err.textContent = 'Choose the .zip file you exported.'; err.hidden = false; return; }
+    A.confirm('This replaces the products, hero slides, pages, menus, ads and settings on THIS site with the ones in the file. It cannot be undone.', { title: 'Import content?', ok: 'Replace and import' }).then(function (yes) {
+      if (!yes) return;
+      var fd = new FormData();
+      fd.append('package', file); fd.append('confirm', 'yes');
+      A.busy(btn, true, 'Importing…');
+      A.request('/transfer/import', { method: 'POST', body: fd })
+        .then(function (json) {
+          var c = json.data;
+          out.className = 'small mt-2 text-success';
+          out.textContent = 'Done: ' + (c.products || 0) + ' products, ' + (c.hero_slides || 0) + ' hero slides, ' + (c.pages || 0) + ' pages, ' + (c.nav_items || 0) + ' menu links, ' + (c.ads || 0) + ' ads, ' + (c.files || 0) + ' pictures/videos.';
+          load();
+        })
+        .catch(function (e) { err.textContent = (e.errors && e.errors.package ? e.errors.package[0] : e.message); err.hidden = false; })
+        .then(function () { A.busy(btn, false); });
+    });
+  });
+
   load();
 })();
