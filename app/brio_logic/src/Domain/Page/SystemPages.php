@@ -29,6 +29,11 @@ final class SystemPages
             'login' => ['title' => 'Sign in', 'slug' => 'login', 'description' => 'Customer sign in', 'blocks' => [$section('login001', 'login')]],
             'register' => ['title' => 'Register', 'slug' => 'register', 'description' => 'Customer sign up', 'blocks' => [$section('reg00001', 'register')]],
             'account' => ['title' => 'My account', 'slug' => 'account', 'description' => 'Customer profile and orders', 'blocks' => [$section('acct0001', 'account')]],
+            'deals' => ['title' => 'Daily Deals', 'slug' => 'daily-deals', 'description' => 'Every product that is on offer', 'blocks' => [
+                ['id' => 'deal0001', 'type' => 'heading', 'text' => 'Daily Deals', 'level' => 'h2', 'align' => 'center'],
+                ['id' => 'deal0002', 'type' => 'products', 'title' => '', 'subtitle' => 'Special limited-time offers on our signature organic essentials',
+                 'source' => 'deals', 'category' => '', 'ids' => [], 'limit' => 24],
+            ]],
             'about' => ['title' => 'About us', 'slug' => 'about-us', 'description' => 'Who we are and what we make', 'blocks' => self::aboutBlocks()],
         ];
     }

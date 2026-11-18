@@ -3,6 +3,7 @@
 [$stockText, $tone] = stock_status((int)$product['stock']);
 $soldOut = $product['stock'] <= 0;
 $related = site_related($product);
+$off = discount_percent($product['price'], $product['compareAtPrice']);
 ?>
 <div class="container page pdp">
   <nav class="crumbs" aria-label="Breadcrumb">
@@ -19,6 +20,7 @@ $related = site_related($product);
       <div class="pdp__price">
         <span><?= money($product['price']) ?></span>
         <?php if ($product['compareAtPrice']): ?><s><?= money($product['compareAtPrice']) ?></s><?php endif; ?>
+        <?php if ($off): ?><span class="pdp__off"><?= $off ?>% off</span><?php endif; ?>
       </div>
       <p class="stock stock--<?= $tone ?> mt-2"><span class="stock__dot" aria-hidden="true"></span><?= e($stockText) ?></p>
       <?php if (trim($product['description']) !== ''): ?><div class="cms-text pdp__desc"><?= format_text($product['description']) ?></div><?php endif; ?>

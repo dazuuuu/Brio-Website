@@ -871,3 +871,24 @@ h2.cms-heading { font-size: clamp(1.7rem, 3.2vw, 2.4rem); } h3.cms-heading { fon
   .auth-alt { flex: none; padding: 1rem 0 0; border-left: 0; border-top: 1px solid var(--line); flex-direction: row; flex-wrap: wrap; justify-content: center; }
   .auth-alt__label { display: none; }
 }
+
+/* ---- Hero: always fit the screen ---- */
+.hero-section, .hero-banner, .hero-banner .carousel-inner, .hero-banner .carousel-item { max-width: 100%; }
+.hero-banner .carousel-inner { overflow: hidden; }
+.hero-slide__link { position: absolute; inset: 0; z-index: 3; }
+.hero-slide__img, .hero-banner__img { max-width: 100%; }
+@media (max-width: 767.98px) {
+  .hero-section { padding-top: 0; overflow: hidden; }
+  .hero-section > .container { padding-left: 0; padding-right: 0; max-width: 100%; }
+  .hero-banner { border-radius: 0; border-left: 0; border-right: 0; width: 100%; }
+  .hero-banner__watermark { display: none; }
+  .hero-banner__image-stage { max-width: 100%; }
+  .hero-banner__content { padding-left: 1rem; padding-right: 1rem; }
+}
+
+/* ---- Offer badges / view button ---- */
+.product-card__off { position: absolute; top: .85rem; right: .85rem; z-index: 2; padding: .25rem .6rem; border-radius: 999px; background: #d92d20; color: #fff; font-size: .75rem; font-weight: 700; box-shadow: var(--shadow-sm); }
+.product-card__save, .pdp__off { color: #d92d20; font-size: .8rem; font-weight: 700; }
+.pdp__off { margin-left: .6rem; padding: .15rem .55rem; border-radius: 999px; background: rgba(217, 45, 32, .1); }
+.product-card__view { margin-bottom: .5rem; }
+@media (max-width: 575.98px) { .product-card__off { top: .5rem; right: .5rem; padding: .2rem .45rem; font-size: .65rem; } }

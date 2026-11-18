@@ -29,9 +29,12 @@ final class HeroService
     {
         $out = [];
         foreach ($this->slides->all(true) as $s) {
-            $href = $s->ctaLabel !== null ? $this->links->resolve($s->link) : null;
+            // A slide that isn't linked to a category, product or page sends visitors to the Daily Deals page.
+            $href = $s->link->isNone() ? null : $this->links->resolve($s->link);
+            $hasTarget = $href !== null;
+            $href ??= 'daily-deals';
             $out[] = ['image' => $s->image, 'mobileImage' => $s->mobileImage, 'alt' => $s->alt,
-                      'ctaLabel' => $href !== null ? $s->ctaLabel : null, 'href' => $href,
+                      'ctaLabel' => $s->ctaLabel !== null && $hasTarget ? $s->ctaLabel : null, 'href' => $href,
                       'ctaColor' => $s->ctaColor, 'ctaTextColor' => HeroSlide::textColorFor($s->ctaColor)];
         }
         return $out;

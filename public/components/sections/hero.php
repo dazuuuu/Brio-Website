@@ -20,6 +20,7 @@ $multi = count($slides) > 1;
                 <?php if ($s['mobileImage']): ?><source media="(max-width: 767.98px)" srcset="<?= e(url($s['mobileImage'])) ?>"><?php endif; ?>
                 <img src="<?= e(url($s['image'])) ?>" alt="<?= e($s['alt']) ?>" class="hero-slide__img"<?= $i > 0 ? ' loading="lazy"' : '' ?>>
               </picture>
+              <a class="hero-slide__link" href="<?= e(site_href($s['href'])) ?>" aria-label="<?= e($s['alt'] !== '' ? $s['alt'] : 'View offer') ?>"></a>
               <?php if ($s['ctaLabel'] !== null && $s['href'] !== null): ?>
                 <a class="hero-slide__cta" style="background:<?= e($s['ctaColor']) ?>;color:<?= e($s['ctaTextColor']) ?>" href="<?= e(site_href($s['href'])) ?>"><?= e($s['ctaLabel']) ?></a>
               <?php endif; ?>

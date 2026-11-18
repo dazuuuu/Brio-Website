@@ -19,6 +19,7 @@
 # This is your store's data, not code. Keep the folder's security rules.
 /public/uploads/*
 !/public/uploads/.htaccess
+/data/
 
 # ── Packages and backups ────────────────────────────────────────────────
 *.zip
@@ -37,3 +38,6 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Starter catalogue package (import from Admin → Settings)
+!/app/brio_logic/database/starter/*.zip

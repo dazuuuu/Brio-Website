@@ -64,6 +64,14 @@ function stock_status(int $stock): array
     return ['In stock', 'in'];
 }
 
+/** Whole-number percentage off when a higher "compare at" price is set, else null. */
+function discount_percent($price, $compareAt): ?int
+{
+    if (!$compareAt || $compareAt <= $price || $price < 0) return null;
+    $pct = (int)round((1 - $price / $compareAt) * 100);
+    return $pct > 0 ? $pct : null;
+}
+
 /** Public URL for a product image path stored relative to /public. */
 function product_image(array $p): string
 {

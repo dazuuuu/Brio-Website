@@ -64,7 +64,7 @@ require __DIR__ . '/_shell_top.php';
 
         <hr class="my-4">
         <h3 class="adm-section-title">Button <span class="text-secondary fw-normal">(optional)</span></h3>
-        <p class="small text-secondary">Add a button on top of the image that opens a product, a category, one of your pages or any link. Choose “No link” for a plain image slide.</p>
+        <p class="small text-secondary">Add a button on top of the image that opens a product, a category, one of your pages or any link. Choose “No link” and the slide opens the Daily Deals page.</p>
         <div class="row g-3">
           <div class="col-md-6" data-link-slot></div>
           <div class="col-md-6" data-cta-fields><label class="form-label adm-label" for="sf-label">Button text</label><input id="sf-label" name="ctaLabel" class="form-control adm-input" maxlength="60" placeholder="Shop now"></div>
