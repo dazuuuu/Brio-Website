@@ -11,7 +11,8 @@ $multi = count($slides) > 1;
 <?php if ($slides): ?>
 <section class="hero-section" aria-label="Featured promotions">
   <div class="container">
-    <div id="hero-carousel" class="carousel slide hero-banner hero-banner--image"<?= $multi ? ' data-bs-ride="carousel" data-bs-interval="6000"' : '' ?>>
+    <div class="hero-wrap">
+    <div id="hero-carousel" class="carousel slide hero-banner hero-banner--image"<?= $multi ? ' data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="false"' : '' ?>>
       <div class="carousel-inner">
         <?php foreach ($slides as $i => $s): ?>
           <div class="carousel-item<?= $i === 0 ? ' active' : '' ?>">
@@ -29,14 +30,17 @@ $multi = count($slides) > 1;
         <?php endforeach; ?>
       </div>
       <?php if ($multi): ?>
-        <button type="button" class="hero-banner__nav-btn hero-banner__nav-btn--prev" data-bs-target="#hero-carousel" data-bs-slide="prev" aria-label="Previous slide"><?= icon('chevron-left', 20) ?></button>
-        <button type="button" class="hero-banner__nav-btn hero-banner__nav-btn--next" data-bs-target="#hero-carousel" data-bs-slide="next" aria-label="Next slide"><?= icon('chevron-right', 20) ?></button>
         <div class="carousel-indicators hero-banner__dots" aria-label="Slide dots">
           <?php foreach ($slides as $i => $s): ?>
             <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="<?= $i ?>" class="hero-banner__dot<?= $i === 0 ? ' active' : '' ?>" <?= $i === 0 ? 'aria-current="true"' : '' ?> aria-label="Go to slide <?= $i + 1 ?>"></button>
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
+    </div>
+    <?php if ($multi): ?>
+        <button type="button" class="hero-banner__nav-btn hero-banner__nav-btn--prev" data-bs-target="#hero-carousel" data-bs-slide="prev" aria-label="Previous slide"><?= icon('chevron-left', 20) ?></button>
+        <button type="button" class="hero-banner__nav-btn hero-banner__nav-btn--next" data-bs-target="#hero-carousel" data-bs-slide="next" aria-label="Next slide"><?= icon('chevron-right', 20) ?></button>
+    <?php endif; ?>
     </div>
   </div>
 </section>

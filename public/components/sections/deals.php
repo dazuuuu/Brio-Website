@@ -10,8 +10,18 @@ $dealsSubtitle = (string)($block['subtitle'] ?? 'Special limited-time offers on 
       <h2 id="deals-title" class="section__title-centered"><?= e($dealsTitle) ?></h2>
       <?php if ($dealsSubtitle !== ''): ?><p class="section__subtitle-centered"><?= e($dealsSubtitle) ?></p><?php endif; ?>
     </div>
-    <?php if ($deals): ?>
-      <?php component('ui/product-grid', ['products' => $deals]); ?>
+    <?php if ($deals):
+      // Repeat the cards until one set is wider than any screen, then show two identical sets so the loop has no gap.
+      $set = [];
+      while (count($set) < 8) foreach ($deals as $d) $set[] = $d;
+      $secs = count($set) * 6; // slow: about 6 seconds per card
+    ?>
+      <div class="deals-marquee" style="--deals-time: <?= $secs ?>s" role="region" aria-label="<?= e($dealsTitle) ?>">
+        <div class="deals-marquee__track">
+          <div class="deals-marquee__group"><?php foreach ($set as $p) component('ui/product-card', ['p' => $p, 'hidden' => false]); ?></div>
+          <div class="deals-marquee__group" aria-hidden="true" inert><?php foreach ($set as $p) component('ui/product-card', ['p' => $p, 'hidden' => false]); ?></div>
+        </div>
+      </div>
     <?php endif; ?>
   </div>
 </section>

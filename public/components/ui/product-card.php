@@ -26,7 +26,7 @@ $off = discount_percent($p['price'], $p['compareAtPrice']);
               <?= $soldOut ? 'disabled' : '' ?> aria-label="<?= e($soldOut ? $p['name'] . ' is out of stock' : 'Add ' . $p['name'] . ' to cart') ?>">
         <?= $soldOut ? 'Sold out' : 'Add to Cart' ?>
       </button>
-      <a class="btn btn-brio btn-brio--secondary product-card__view" href="<?= e(url('products/' . $p['slug'])) ?>">View product</a>
+      <a class="btn btn-brio btn-brio--secondary product-card__view" href="<?= e(url('products/' . $p['slug'])) ?>"><span class="d-none d-sm-inline">View product</span><span class="d-sm-none">View</span></a>
       </div>
     </div>
   </article>
