@@ -14,7 +14,11 @@ function url(string $path = ''): string
 
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    // Stamp CSS/JS with the file's last-changed time so browsers and hosts fetch the new file after every upload.
+    $file = dirname(__DIR__, 2) . '/assets/' . $path;
+    $v = preg_match('/\.(css|js)$/', $path) && is_file($file) ? '?v=' . filemtime($file) : '';
+    return url('assets/' . $path) . $v;
 }
 
 function e(?string $v): string

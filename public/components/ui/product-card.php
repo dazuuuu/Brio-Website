@@ -21,11 +21,13 @@ $off = discount_percent($p['price'], $p['compareAtPrice']);
         <?php if ($off): ?><span class="product-card__save"><?= $off ?>% off</span><?php endif; ?>
       </div>
       <p class="stock stock--<?= $tone ?>"><span class="stock__dot" aria-hidden="true"></span><?= e($stockText) ?></p>
-      <a class="btn btn-brio btn-brio--secondary w-100 product-card__view" href="<?= e(url('products/' . $p['slug'])) ?>">View product</a>
-      <button type="button" class="btn btn-brio btn-brio--primary w-100 product-card__action" data-add-to-cart="<?= product_json($p) ?>"
+      <div class="product-card__actions">
+      <button type="button" class="btn btn-brio btn-brio--primary product-card__action" data-add-to-cart="<?= product_json($p) ?>"
               <?= $soldOut ? 'disabled' : '' ?> aria-label="<?= e($soldOut ? $p['name'] . ' is out of stock' : 'Add ' . $p['name'] . ' to cart') ?>">
         <?= $soldOut ? 'Sold out' : 'Add to Cart' ?>
       </button>
+      <a class="btn btn-brio btn-brio--secondary product-card__view" href="<?= e(url('products/' . $p['slug'])) ?>">View product</a>
+      </div>
     </div>
   </article>
 </div>

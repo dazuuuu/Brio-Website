@@ -15,7 +15,7 @@ $multi = count($slides) > 1;
       <div class="carousel-inner">
         <?php foreach ($slides as $i => $s): ?>
           <div class="carousel-item<?= $i === 0 ? ' active' : '' ?>">
-            <div class="hero-slide" style="--ar-m: <?= $s['mobileImage'] ? '1 / 1' : '4 / 3' ?>">
+            <div class="hero-slide<?= $s['mobileImage'] ? '' : ' hero-slide--auto' ?>" style="--ar-m: 1 / 1">
               <picture>
                 <?php if ($s['mobileImage']): ?><source media="(max-width: 767.98px)" srcset="<?= e(url($s['mobileImage'])) ?>"><?php endif; ?>
                 <img src="<?= e(url($s['image'])) ?>" alt="<?= e($s['alt']) ?>" class="hero-slide__img"<?= $i > 0 ? ' loading="lazy"' : '' ?>>
